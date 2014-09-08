@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.30.1
+// @version        1.30.2
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -565,8 +565,8 @@ $.npu = {
 						clearAll.click(function(e) {
 							e.preventDefault();
 							if(confirm($.npu.user + " felhasználó összes tárolt kurzusa törölve lesz ezen a képzésen. Valóban ezt szeretnéd?")) {
-								$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training], null);
-								$.npu.setUserData(null, $.npu.user, ["courses", "_legacy"], null);
+								$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training], { });
+								$.npu.setUserData(null, $.npu.user, ["courses", "_legacy"], { });
 								$.npu.saveData();
 								loadCourses();
 								refreshScreen();
@@ -785,7 +785,12 @@ $.npu = {
 			while(s.length) {
 				var n = s.shift();
 				if(s.length == 0) {
-					o[n] = v;
+					if(v == null) {
+						delete o[n];
+					}
+					else {
+						o[n] = v;
+					}
 					return;
 				}
 				if(!(typeof o == "object" && n in o)) {

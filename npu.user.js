@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.31
+// @version        1.32
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -47,6 +47,10 @@ $.npu = {
 				if(this.isPage("0401") || this.isPage("h_exams")) {
 					this.fixExamList();
 					this.initExamAutoList();
+				}
+				
+				if(this.isPage("0222") || this.isPage("h_advance")) {
+					this.fixProgressList();
 				}
 				
 				this.initSync();
@@ -718,6 +722,13 @@ $.npu = {
 					$("#upFilter_expandedsearchbutton").click();
 				}
 			}, 100);
+		},
+
+	/* == PROGRESS LIST == */
+		
+		/* Enhance progress list style */
+		fixProgressList: function() {
+			$('<style type="text/css"> #h_advance_gridSubjects_bodytable tr:not(.gridrow_blue):not(.gridrow_green) td, #h_advance_NonCurrTemp_bodytable tr:not(.gridrow_blue):not(.gridrow_green) td { background-color: #F8EFB1 !important; font-weight: bold; color: #525659; } #h_advance_gridSubjects_bodytable tr.gridrow_green td, #h_advance_NonCurrTemp_bodytable tr.gridrow_green td { background-color: #D5EFBA !important; font-weight: bold; color: #525659; } #h_advance_gridSubjects_bodytable tr.gridrow_blue td, #h_advance_NonCurrTemp_bodytable tr.gridrow_blue td { background-color: none !important; color: #525659; } </style>').appendTo("head");
 		},
 	
 	/* == MISC == */

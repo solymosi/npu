@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.44
+// @version        1.45
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -380,7 +380,7 @@ $.npu = {
 		
 		/* Fix opening in new tab and add shortcuts */
 		fixMenu: function() {
-			var color = $("#lbtnChangeTraining").css("color");
+			var color = $("#lbtnQuit").css("color");
 			$('<style type="text/css">ul.menubar, .top_menu_wrapper { cursor: default !important } #mb1 li.menu-parent { color: #525659 !important } #mb1 li.menu-parent.has-target { color: ' + color + ' !important } #mb1 li.menu-parent.has-target:hover { color: #000 !important }</style>').appendTo("head");
 			$("#mb1_Tanulmanyok").attr("targeturl", "main.aspx?ctrl=0206&ismenuclick=true").attr("hoverid", "#mb1_Tanulmanyok_Leckekonyv");
 			$("#mb1_Targyak").attr("targeturl", "main.aspx?ctrl=0303&ismenuclick=true").attr("hoverid", "#mb1_Targyak_Targyfelvetel");
@@ -536,7 +536,7 @@ $.npu = {
 		
 		/* Use custom loading indicator for async requests */
 		initProgressIndicator: function() {
-			var color = $("#lbtnChangeTraining").css("color");
+			var color = $("#lbtnQuit").css("color");
 			$('<style type="text/css"> #npu_loading { position: fixed; width: 150px; margin-left: -75px; left: 50%; top: 0; background: ' + color + '; color: white; font-size: 1em; font-size: 1.2em; font-weight: bold; padding: 8px 10px; text-align: center; z-index: 1000; display: none; -webkit-border-bottom-right-radius: 5px; -webkit-border-bottom-left-radius: 5px; -moz-border-radius-bottomright: 5px; -moz-border-radius-bottomleft: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; -webkit-box-shadow: 0px 0px 3px 0px black; -moz-box-shadow: 0px 0px 3px 0px black; box-shadow: 0px 0px 3px 0px black; } </style>').appendTo("head");
 			$("#progress, #customtextprogress").css("visibility", "hidden");
 			$('<div id="npu_loading">Kis türelmet...</div>').appendTo("body");
@@ -604,8 +604,8 @@ $.npu = {
 			});
 			
 			$("body").on("click", "#h_addsubjects_gridSubjects_bodytable tbody td", function(e) {
-				if($(e.target).closest("td[onclick]").size() == 0 && $(e.target).closest("td.contextcell_sel, td.contextcell").size() == 0) {
-					$.npu.runEval($("td[onclick]", $(this).closest("tr")).attr("onclick"));
+				if($(e.target).closest("td[onclick], span.link").size() == 0 && $(e.target).closest("td.contextcell_sel, td.contextcell").size() == 0) {
+					$.npu.runEval($("td[onmousemove] span.link", $(this).closest("tr")).attr("onclick"));
 					e.preventDefault();
 					return false;
 				}

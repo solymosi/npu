@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.40
+// @version        1.41
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -39,6 +39,7 @@ $.npu = {
 				this.fixTermSelect();
 				this.fixPagination();
 				this.initKeepSession();
+				this.initProgressIndicator();
 				
 				if(this.isPage("0203") || this.isPage("c_common_timetable")) {
 					this.fixTimetable();
@@ -431,6 +432,8 @@ $.npu = {
 					return false;
 				}
 				termSelect.val(el.attr("data-value"));
+				$(".termSelect .button").removeClass("button");
+				el.addClass("button");
 				var onChange = termSelect[0].getAttributeNode("onchange");
 				if(onChange) {
 					$.npu.runAsync(function() { $.npu.runEval(onChange.value); });
@@ -529,6 +532,23 @@ $.npu = {
 				}
 				unsafeWindow.sessionEndDate = null;
 			}, 1000);
+		},
+		
+		/* Use custom loading indicator for async requests */
+		initProgressIndicator: function() {
+			var color = $("#lbtnChangeTraining").css("color");
+			$('<style type="text/css"> #npu_loading { position: fixed; width: 180px; margin-left: -75px; left: 50%; top: 0; background: ' + color + '; color: white; font-size: 1em; font-size: 1.2em; font-weight: bold; padding: 10px 10px; text-align: center; z-index: 1000; display: none; -webkit-border-bottom-right-radius: 5px; -webkit-border-bottom-left-radius: 5px; -moz-border-radius-bottomright: 5px; -moz-border-radius-bottomleft: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; -webkit-box-shadow: 0px 0px 3px 0px black; -moz-box-shadow: 0px 0px 3px 0px black; box-shadow: 0px 0px 3px 0px black; } </style>').appendTo("head");
+			$("#progress, #customtextprogress").css("visibility", "hidden");
+			$('<div id="npu_loading">Kis türelmet...</div>').appendTo("body");
+			
+			var manager = unsafeWindow.Sys.WebForms.PageRequestManager.getInstance();
+			manager.add_beginRequest(function(a,b) {
+				console.log([a,b]);
+				$("#npu_loading").show();
+			});
+			manager.add_endRequest(function() {
+				$("#npu_loading").hide();
+			});
 		},
 		
 	/* == TIMETABLE == */

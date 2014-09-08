@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.22.2
+// @version        1.23
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -443,11 +443,18 @@ $.neptun = {
 			$('<style type="text/css"> #upFunction_h_addsubjects_upGrid_gridSubjects_bodytable tr td.npu_choice_mark, #upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable  tr td.npu_choice_mark { background: #C00 !important } </style>').appendTo("head");
 			this.loadCourseChoices();
 			var currentUser = this.getUserID();
+			var refreshScreen = function() {
+				$("#upFunction_h_addsubjects_upGrid_gridSubjects_bodytable").attr("data-choices-displayed", "0");
+				$("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable").attr("data-inner-choices-displayed", "0");
+			};
 			
 			window.setInterval(function() {
 				var table = $("#upFunction_h_addsubjects_upGrid_gridSubjects_bodytable");
 				if(table.attr("data-choices-displayed") != "1") {
 					table.attr("data-choices-displayed", "1");
+					if(typeof $.neptun.courseChoices[currentUser] == "undefined") {
+						$.neptun.courseChoices[currentUser] = { };
+					}
 					$("tbody tr", table).each(function() {
 						var subjectCode = $("td:nth-child(3)", this).text().trim().toUpperCase();
 						var choices = $.neptun.courseChoices[currentUser][subjectCode];
@@ -458,6 +465,19 @@ $.neptun = {
 							$("td:first-child", this).removeClass("npu_choice_mark");
 						}
 					});
+					if($("#npu_clear_course_choices").size() == 0) {
+						var pager = $("#upFunction_h_addsubjects_upGrid_gridSubjects_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
+						var clearAll = $('<a style="color: #C00; line-height: 17px; margin-right: 30px" href="" id="npu_clear_course_choices">Tárolt kurzusok törlése</a>');
+						clearAll.click(function(e) {
+							e.preventDefault();
+							if(confirm(currentUser + " felhasználó összes tárolt kurzusa törölve lesz. Valóban ezt szeretnéd?")) {
+								$.neptun.courseChoices[currentUser] = { };
+								$.neptun.saveCourseChoices();
+								refreshScreen();
+							}
+						});
+						pager.prepend(clearAll);
+					}
 				}
 				
 				var innerTable = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable");
@@ -492,13 +512,9 @@ $.neptun = {
 							if($(".npu_course_choice_actions").size() == 0) {
 								var header = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_gridmaindiv .grid_functiontable_top .functionitem");
 								var footer = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_tablebottom .grid_functiontable_bottom .functionitem");
-								var buttonBarExtensions = $('<span class="npu_course_choice_actions" style="margin: 0 20px"><span class="FunctionCommandTitle">Választás tárolása ezen a gépen:</span><input type="button" value="Tárolás" class="gridbutton npu_course_choice_save"><input type="button" value="Betöltés" class="gridbutton npu_course_choice_load" style="display: none"><input type="button" value="Betöltés és Mentés" class="gridbutton npu_course_choice_apply" style="display: none"><input type="button" value="Törlés" class="gridbutton npu_course_choice_delete" style="display: none"></span>');
+								var buttonBarExtensions = $('<span class="npu_course_choice_actions" style="margin: 0 20px"><span class="FunctionCommandTitle">Tárolt kurzusok:</span><input type="button" value="Tárolás" class="gridbutton npu_course_choice_save"><input type="button" value="Betöltés" class="gridbutton npu_course_choice_load" style="display: none"><input type="button" value="Betöltés és Mentés" class="gridbutton npu_course_choice_apply" style="display: none"><input type="button" value="Törlés" class="gridbutton npu_course_choice_delete" style="display: none"></span>');
 								header.append(buttonBarExtensions);
 								footer.prepend(buttonBarExtensions.clone());
-								var refreshScreen = function() {
-									table.attr("data-choices-displayed", "0");
-									innerTable.attr("data-inner-choices-displayed", "0");
-								};
 								$(".npu_course_choice_actions .npu_course_choice_save").click(function() {
 									var selectedCourses = [];
 									$("tbody tr", innerTable).each(function() {
@@ -509,13 +525,12 @@ $.neptun = {
 										}
 									});
 									if(selectedCourses.length == 0) {
-										alert("A kiválasztott kurzusok listájának tárolásához elobb válassz ki legalább egy kurzust.");
+										alert("A tároláshoz elobb válaszd ki a tárolandó kurzusokat.");
 									}
 									else {
 										$.neptun.courseChoices[currentUser][subjectCode.trim().toUpperCase()] = selectedCourses;
 										$.neptun.saveCourseChoices();
 										refreshScreen();
-										alert("A kiválasztott kurzusok listája sikeresen tárolva lett a gépeden.");
 									}
 								});
 								$(".npu_course_choice_actions .npu_course_choice_load").click(function() {
@@ -533,7 +548,7 @@ $.neptun = {
 									try { obj.SelectFunction("update"); } catch(ex) { }
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
-									if(confirm("Valóban törölni szeretnéd a tárolt kurzus-kiválasztást?")) {
+									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
 										delete $.neptun.courseChoices[currentUser][subjectCode.trim().toUpperCase()];
 										$.neptun.saveCourseChoices();
 										refreshScreen();

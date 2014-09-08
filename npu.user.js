@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.42
+// @version        1.43
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -543,7 +543,6 @@ $.npu = {
 			
 			var manager = unsafeWindow.Sys.WebForms.PageRequestManager.getInstance();
 			manager.add_beginRequest(function(a,b) {
-				console.log([a,b]);
 				$("#npu_loading").show();
 			});
 			manager.add_endRequest(function() {
@@ -837,38 +836,38 @@ $.npu = {
 	/* == STATISTICS == */
 	
 		/* Statistics server URL */
-		statHost: "http://npu.site88.net/stat/",
+		statHost: "http://npu.herokuapp.com/stat",
 		
 		/* Initialize statistics */
 		initStat: function() {
 			var code = $.npu.getUserData(null, null, ["statCode"]);
 			if(code == null) {
 				code = $.npu.generateToken();
-				setTimeout(function() {
-					try {
-						var h = new $.npu.jsSHA($.npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
-						GM_xmlhttpRequest({
-							method: "POST",
-							data: JSON.stringify({
-								v: GM_info["script"]["version"],
-								s: $.npu.domain,
-								h: h.substring(0, 32)
-							}),
-							synchronous: false,
-							timeout: 10000,
-							url: $.npu.statHost,
-							onload: function(r) {
-								if(r.status == 202) {
-									$.npu.setUserData(null, null, ["statSalt"], null);
-									$.npu.setUserData(null, null, ["statCode"], code);
-									$.npu.saveData();
-								}
-							}
-						});
-					}
-					catch(e) { }
-				}, 5000);
+				$.npu.setUserData(null, null, ["statSalt"], null);
+				$.npu.setUserData(null, null, ["statCode"], code);
+				$.npu.saveData();
 			}
+			setTimeout(function() {
+				try {
+					var h = new $.npu.jsSHA($.npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
+					GM_xmlhttpRequest({
+						method: "POST",
+						data: $.param({
+							version: GM_info["script"]["version"],
+							domain: $.npu.domain,
+							user: h.substring(0, 32),
+							uri: window.location.href
+						}),
+						headers: {
+							"Content-Type": "application/x-www-form-urlencoded"
+						},
+						synchronous: false,
+						timeout: 10000,
+						url: $.npu.statHost
+					});
+				}
+				catch(e) { }
+			}, 5000);
 		},
 	
 	/* == MISC == */

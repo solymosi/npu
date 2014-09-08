@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.24
+// @version        1.24.1
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -16,7 +16,7 @@
 
 $ = unsafeWindow.jQuery;
 
-$.neptun = {
+$.npu = {
 	
 	/* == VARIABLES == */
 	
@@ -57,13 +57,13 @@ $.neptun = {
 	
 		/* Load and display user select field */
 		initUserSelect: function() {
-			$.neptun.loadUsers();
+			$.npu.loadUsers();
 
 			$(".login_left_side .login_input").css("text-align", "left");
 			
 			var selectField = $('<select id="user_sel" class="bevitelimezo" name="user_sel"></select>').hide();
-			for(var i = 0; i < $.neptun.users.length; i++) {
-				selectField.append('<option id="' + $.neptun.users[i][0]+ '" value="' + $.neptun.users[i][0] + '" class="neptun_kod">' + $.neptun.users[i][0] + '</option>');
+			for(var i = 0; i < $.npu.users.length; i++) {
+				selectField.append('<option id="' + $.npu.users[i][0]+ '" value="' + $.npu.users[i][0] + '" class="neptun_kod">' + $.npu.users[i][0] + '</option>');
 			}
 			
 			selectField.append('<option disabled="disabled" class="user_separator">&nbsp;</option>');
@@ -76,22 +76,22 @@ $.neptun = {
 			$("option[class!=neptun_kod]", selectField).css("font-size", "0.8em").css("font-family", "tahoma").css("font-weight", "normal").css("color", "#666").css("font-style", "italic");
 			$("option.user_separator", selectField).css("font-size", "0.5em");
 			
-			selectField.bind("mousedown focus change", function() { $.neptun.abortAutoLogin() });
-			$("#pwd, #Submit, #btnSubmit").bind("mousedown focus change", function() { $.neptun.abortAutoLogin() });
+			selectField.bind("mousedown focus change", function() { $.npu.abortAutoLogin() });
+			$("#pwd, #Submit, #btnSubmit").bind("mousedown focus change", function() { $.npu.abortAutoLogin() });
 			
 			selectField.bind("change", function() {
-				$.neptun.clearLogin();
+				$.npu.clearLogin();
 				
 				if($(this).val() == "__OTHER__") {
-					$.neptun.hideSelect();
+					$.npu.hideSelect();
 					return false;
 				}
 				
 				if($(this).val() == "__DELETE__") {
-					$("#user_sel").val($.neptun.users[0][0]).trigger("change");
+					$("#user_sel").val($.npu.users[0][0]).trigger("change");
 					var defaultString = "mindegyiket";
-					for(var i = 0; i < $.neptun.users.length; i++) {
-						defaultString += "   /   " + $.neptun.users[i][0];
+					for(var i = 0; i < $.npu.users.length; i++) {
+						defaultString += "   /   " + $.npu.users[i][0];
 					}
 					itemToDelete = unsafeWindow.prompt("Írd be a törlendo neptun kódot. Az összes törléséhez írd be: MINDEGYIKET", defaultString);
 					if(itemToDelete == "" || itemToDelete == null) {
@@ -99,18 +99,18 @@ $.neptun = {
 					}
 					
 					if(itemToDelete.toUpperCase() == "MINDEGYIKET") {
-						$.neptun.users = [];
-						$.neptun.saveUsers();
+						$.npu.users = [];
+						$.npu.saveUsers();
 						alert("Az összes tárolt neptun kód törölve lett a bejelentkezési listából.");
 						window.location.reload();
 						return false;
 					}
 					
 					var indexToDelete = -1;
-					for(var i = 0; i < $.neptun.users.length; i++) {
-						if($.neptun.users[i][0] == itemToDelete.toUpperCase()) {
+					for(var i = 0; i < $.npu.users.length; i++) {
+						if($.npu.users[i][0] == itemToDelete.toUpperCase()) {
 							indexToDelete = i;
-							itemToDelete = $.neptun.users[i][0];
+							itemToDelete = $.npu.users[i][0];
 							break;
 						}
 					}
@@ -121,15 +121,15 @@ $.neptun = {
 						return false;
 					}
 					
-					$.neptun.users.splice(indexToDelete, 1);
-					$.neptun.saveUsers();
+					$.npu.users.splice(indexToDelete, 1);
+					$.npu.saveUsers();
 					alert("A(z) " + itemToDelete + " felhasználó törölve lett a bejelentkezési listából.");
 					window.location.reload();
 					return false;
 				}
 				
-				$("#user").val($.neptun.users[$(this).get(0).selectedIndex][0]);
-				$("#pwd").val($.neptun.users[$(this).get(0).selectedIndex][1]);
+				$("#user").val($.npu.users[$(this).get(0).selectedIndex][0]);
+				$("#pwd").val($.npu.users[$(this).get(0).selectedIndex][1]);
 			});
 			
 			$("input[type=submit].login_button").attr("onclick", "").bind("click", function(e) {
@@ -141,22 +141,22 @@ $.neptun = {
 					}
 					
 					var foundID = -1;
-					for(var i = 0; i < $.neptun.users.length; i++) {
-						if($.neptun.users[i][0] == $("#user").val().toUpperCase()) {
+					for(var i = 0; i < $.npu.users.length; i++) {
+						if($.npu.users[i][0] == $("#user").val().toUpperCase()) {
 							foundID = i;
 						}
 					}
 					
 					if(foundID == -1) {
 						if(confirm("Szeretnéd menteni a beírt adatokat, hogy késobb egy kattintással be tudj lépni errol a számítógéprol?")) {
-							$.neptun.users.push([$("#user").val().toUpperCase(), $("#pwd").val()]);
-							$.neptun.saveUsers();
+							$.npu.users.push([$("#user").val().toUpperCase(), $("#pwd").val()]);
+							$.npu.saveUsers();
 						}
-						$.neptun.submitLogin();
+						$.npu.submitLogin();
 						return;
 					}
 					else {
-						$("#user_sel").val($.neptun.users[foundID][0]);
+						$("#user_sel").val($.npu.users[foundID][0]);
 					}
 				}
 				
@@ -164,47 +164,47 @@ $.neptun = {
 					return;
 				}
 				
-				if($("#pwd").val() != $.neptun.users[$("#user_sel").get(0).selectedIndex][1]) {
+				if($("#pwd").val() != $.npu.users[$("#user_sel").get(0).selectedIndex][1]) {
 					if(confirm("Szeretnéd megváltoztatni a(z) " + $("#user").val().toUpperCase() + " felhasználó tárolt jelszavát a most beírt jelszóra?")) {
-						$.neptun.users[$("#user_sel").get(0).selectedIndex][1] = $("#pwd").val();
-						$.neptun.saveUsers();
+						$.npu.users[$("#user_sel").get(0).selectedIndex][1] = $("#pwd").val();
+						$.npu.saveUsers();
 					}
 				}
 				
-				$.neptun.submitLogin();
+				$.npu.submitLogin();
 				return;
 			});
 			
 			$("#user").parent().append(selectField);
-			$.neptun.showSelect();
+			$.npu.showSelect();
 			selectField.trigger("change");
 		},
 		
 		/* Initialize auto login and start countdown */
 		initAutoLogin: function() {
-			if($.neptun.users.length < 1) {
+			if($.npu.users.length < 1) {
 				return;
 			}
 			var submit = $("#Submit, #btnSubmit");
-			$.autoLoginRemaining = 3;
-			$.loginButtonText = submit.attr("value");
-			submit.attr("value", $.loginButtonText + " (" + $.autoLoginRemaining + ")");
-			$(".login_button_td").append('<div id="abortAL" style="text-align: center; margin: 23px 0 0 128px"><a href="javascript:$.neptun.abortAutoLogin()">Megszakít</a></div>');
-			$.autoLoginTimer = window.setInterval(function() {
-				$.autoLoginRemaining--;
-				submit.attr("value", $.loginButtonText + " (" + $.autoLoginRemaining + ")");
-				if($.autoLoginRemaining <= 0) {
-					$.neptun.submitLogin();
-					$.neptun.abortAutoLogin();
-					submit.attr("value", $.loginButtonText + "...");
+			$.npu.autoLoginRemaining = 3;
+			$.npu.loginButtonText = submit.attr("value");
+			submit.attr("value", $.npu.loginButtonText + " (" + $.npu.autoLoginRemaining + ")");
+			$(".login_button_td").append('<div id="abortAL" style="text-align: center; margin: 23px 0 0 128px"><a href="javascript:$.npu.abortAutoLogin()">Megszakít</a></div>');
+			$.npu.autoLoginTimer = window.setInterval(function() {
+				$.npu.autoLoginRemaining--;
+				submit.attr("value", $.npu.loginButtonText + " (" + $.npu.autoLoginRemaining + ")");
+				if($.npu.autoLoginRemaining <= 0) {
+					$.npu.submitLogin();
+					$.npu.abortAutoLogin();
+					submit.attr("value", $.npu.loginButtonText + "...");
 				}
 			}, 1000);
 		},
 		
 		/* Abort the auto login countdown */
 		abortAutoLogin: function() {
-			window.clearInterval($.autoLoginTimer);
-			$("#Submit, #btnSubmit").attr("value", $.loginButtonText);
+			window.clearInterval($.npu.autoLoginTimer);
+			$("#Submit, #btnSubmit").attr("value", $.npu.loginButtonText);
 			$("#abortAL").remove();
 		},
 		
@@ -225,7 +225,7 @@ $.neptun = {
 		/* Store user data in the user profile */
 		saveUsers: function() {
 			this.runAsync(function() {
-				GM_setValue("neptun.users", JSON.stringify($.neptun.users));
+				GM_setValue("neptun.users", JSON.stringify($.npu.users));
 			});
 		},
 		
@@ -233,14 +233,14 @@ $.neptun = {
 		showSelect: function() {
 			$("#user").hide();
 			$("#user_sel").show().focus();
-			$.neptun.runEval(' Page_Validators[0].controltovalidate = "user_sel" ');
+			$.npu.runEval(' Page_Validators[0].controltovalidate = "user_sel" ');
 		},
 		
 		/* Hide user select field and display original textbox */
 		hideSelect: function() {
 			$("#user_sel").hide();
 			$("#user").show().focus();
-			$.neptun.runEval(' Page_Validators[0].controltovalidate = "user" ');
+			$.npu.runEval(' Page_Validators[0].controltovalidate = "user" ');
 		},
 		
 		/* Submit the login form */
@@ -321,9 +321,9 @@ $.neptun = {
 							item.addClass("selected");
 							var onChange = termSelect[0].getAttributeNode("onchange");
 							if(onChange) {
-								$.neptun.runAsync(function() { $.neptun.runEval(onChange.value); });
+								$.npu.runAsync(function() { $.npu.runEval(onChange.value); });
 							}
-							if(!$.neptun.isPage("0303") && !$.neptun.isPage("h_addsubjects") && !$.neptun.isPage("0401") && !$.neptun.isPage("h_exams") && !$.neptun.isPage("0503") && !$.neptun.isPage("h_transactionlist")) {
+							if(!$.npu.isPage("0303") && !$.npu.isPage("h_addsubjects") && !$.npu.isPage("0401") && !$.npu.isPage("h_exams") && !$.npu.isPage("0503") && !$.npu.isPage("h_transactionlist")) {
 								$("#upFilter_expandedsearchbutton").click();
 							}
 						});
@@ -347,7 +347,7 @@ $.neptun = {
 						e.attr("data-listing", "1").val("500");
 						var onChange = this.getAttributeNode("onchange");
 						if(onChange) {
-							$.neptun.runEval(onChange.value);
+							$.npu.runEval(onChange.value);
 						}
 					}
 				});
@@ -405,7 +405,7 @@ $.neptun = {
 			});
 			$("body").on("click", "#h_addsubjects_gridSubjects_bodytable tbody td", function(e) {
 				if($(e.target).closest("td[onclick]").size() == 0 && $(e.target).closest("td.contextcell_sel, td.contextcell").size() == 0) {
-					$.neptun.runEval($("td[onclick]", $(this).closest("tr")).attr("onclick"));
+					$.npu.runEval($("td[onclick]", $(this).closest("tr")).attr("onclick"));
 					e.preventDefault();
 					return false;
 				}
@@ -452,12 +452,12 @@ $.neptun = {
 				var table = $("#h_addsubjects_gridSubjects_bodytable");
 				if(table.size() > 0 && table.attr("data-choices-displayed") != "1") {
 					table.attr("data-choices-displayed", "1");
-					if(typeof $.neptun.courseChoices[currentUser] == "undefined") {
-						$.neptun.courseChoices[currentUser] = { };
+					if(typeof $.npu.courseChoices[currentUser] == "undefined") {
+						$.npu.courseChoices[currentUser] = { };
 					}
 					$("tbody tr", table).each(function() {
 						var subjectCode = $("td:nth-child(3)", this).text().trim().toUpperCase();
-						var choices = $.neptun.courseChoices[currentUser][subjectCode];
+						var choices = $.npu.courseChoices[currentUser][subjectCode];
 						if(typeof choices != "undefined" && choices.length > 0) {
 							$("td:first-child", this).addClass("npu_choice_mark");
 						}
@@ -471,8 +471,8 @@ $.neptun = {
 						clearAll.click(function(e) {
 							e.preventDefault();
 							if(confirm(currentUser + " felhasználó összes tárolt kurzusa törölve lesz. Valóban ezt szeretnéd?")) {
-								$.neptun.courseChoices[currentUser] = { };
-								$.neptun.saveCourseChoices();
+								$.npu.courseChoices[currentUser] = { };
+								$.npu.saveCourseChoices();
 								refreshScreen();
 							}
 						});
@@ -497,10 +497,10 @@ $.neptun = {
 					if(subjectText != null) {
 						var subjectCode = subjectText.match(/^.*\((.*)\)<br>.*$/)[1];
 						if(typeof subjectCode != "undefined") {
-							if(typeof $.neptun.courseChoices[currentUser] == "undefined") {
-								$.neptun.courseChoices[currentUser] = { };
+							if(typeof $.npu.courseChoices[currentUser] == "undefined") {
+								$.npu.courseChoices[currentUser] = { };
 							}
-							var choices = $.neptun.courseChoices[currentUser][subjectCode.trim().toUpperCase()];
+							var choices = $.npu.courseChoices[currentUser][subjectCode.trim().toUpperCase()];
 							var hasChoices = (typeof choices != "undefined" && choices.length > 0);
 							if(hasChoices) {
 								$("tbody tr", innerTable).each(function() {
@@ -544,8 +544,8 @@ $.neptun = {
 										alert("A tároláshoz elobb válaszd ki a tárolandó kurzusokat.");
 									}
 									else {
-										$.neptun.courseChoices[currentUser][subjectCode.trim().toUpperCase()] = selectedCourses;
-										$.neptun.saveCourseChoices();
+										$.npu.courseChoices[currentUser][subjectCode.trim().toUpperCase()] = selectedCourses;
+										$.npu.saveCourseChoices();
 										refreshScreen();
 									}
 								});
@@ -553,7 +553,7 @@ $.neptun = {
 									$("tbody tr", innerTable).each(function() {
 										var courseCode = $("td:nth-child(2)", this).text().trim().toUpperCase();
 										var checkbox = $("input[type=checkbox]", this).get(0);
-										checkbox.checked = $.inArray(courseCode, $.neptun.courseChoices[currentUser][subjectCode.trim().toUpperCase()]) != -1;
+										checkbox.checked = $.inArray(courseCode, $.npu.courseChoices[currentUser][subjectCode.trim().toUpperCase()]) != -1;
 										var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
 										try { obj.Cv(checkbox, "1"); } catch(ex) { }
 									});
@@ -565,8 +565,8 @@ $.neptun = {
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
 									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
-										delete $.neptun.courseChoices[currentUser][subjectCode.trim().toUpperCase()];
-										$.neptun.saveCourseChoices();
+										delete $.npu.courseChoices[currentUser][subjectCode.trim().toUpperCase()];
+										$.npu.saveCourseChoices();
 										refreshScreen();
 									}
 								});
@@ -582,7 +582,7 @@ $.neptun = {
 		loadCourseChoices: function() {
 			try {
 				this.runAsync(function() {
-					$.neptun.courseChoices = JSON.parse(GM_getValue("neptun.courses"));
+					$.npu.courseChoices = JSON.parse(GM_getValue("neptun.courses"));
 				});
 			}
 			catch(e) { }
@@ -591,7 +591,7 @@ $.neptun = {
 		/* Store stored course choice data in the user profile */
 		saveCourseChoices: function() {
 			this.runAsync(function() {
-				GM_setValue("neptun.courses", JSON.stringify($.neptun.courseChoices));
+				GM_setValue("neptun.courses", JSON.stringify($.npu.courseChoices));
 			});
 		},
 		
@@ -665,4 +665,4 @@ $.neptun = {
 };
 
 /* Run the script */
-$.neptun.init();
+$.npu.init();

@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.36
+// @version        1.37
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -782,32 +782,25 @@ $.npu = {
 				salt = $.npu.generateToken();
 				$.npu.setUserData(null, null, ["statSalt"], salt);
 				$.npu.saveData();
+				
+				setTimeout(function() {
+					try {
+						var h = new $.npu.jsSHA($.npu.user + ":" + salt, "TEXT").getHash("SHA-256", "HEX");
+						GM_xmlhttpRequest({
+							method: "POST",
+							data: JSON.stringify({
+								v: GM_info["script"]["version"],
+								s: $.npu.domain,
+								h: h.substring(0, 32)
+							}),
+							synchronous: false,
+							timeout: 10000,
+							url: $.npu.statHost
+						});
+					}
+					catch(e) { }
+				}, 5000);
 			}
-			
-			setTimeout(function() {
-				try {
-					$.npu.sendStat()
-				}
-				catch(e) { }
-			}, 5000);
-		},
-		
-		/* Send anonymous info to the statistics server */
-		sendStat: function() {
-			var salt = $.npu.getUserData(null, null, ["statSalt"]);
-			var h = new $.npu.jsSHA($.npu.user + ":" + salt, "TEXT").getHash("SHA-256", "HEX");
-			GM_xmlhttpRequest({
-				method: "POST",
-				data: JSON.stringify({
-					v: GM_info["script"]["version"],
-					s: $.npu.domain,
-					h: h.substring(0, 32),
-					u: location.pathname + location.search
-				}),
-				synchronous: false,
-				timeout: 10000,
-				url: $.npu.statHost
-			});
 		},
 	
 	/* == MISC == */

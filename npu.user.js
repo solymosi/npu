@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.45
+// @version        1.46
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -13,11 +13,10 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @grant          GM_info
+// @require        https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js
 // ==/UserScript==
 
-$ = unsafeWindow.jQuery;
-
-$.npu = {
+var npu = {
 	
 	/* == STARTUP == */
 	
@@ -35,7 +34,6 @@ $.npu = {
 				this.hideHeader();
 				this.fixTitle();
 				this.fixMenu();
-				this.fixChangeTraining();
 				this.fixTermSelect();
 				this.fixPagination();
 				this.initKeepSession();
@@ -65,7 +63,6 @@ $.npu = {
 				}
 				
 				this.initStat();
-				this.initSync();
 			}
 		},
 	
@@ -76,47 +73,47 @@ $.npu = {
 		
 		/* Initialize the storage module */
 		initStorage: function() {
-			$.npu.loadData();
+			npu.loadData();
 		},
 		
 		/* Load all data from local storage */
 		loadData: function() {
 			try {
-				$.npu.data = JSON.parse(GM_getValue("data"));
+				npu.data = JSON.parse(GM_getValue("data"));
 			}
 			catch(e) { }
-			$.npu.upgradeSchema();
+			npu.upgradeSchema();
 		},
 		
 		/* Save all data to local storage */
 		saveData: function() {
 			this.runAsync(function() {
-				GM_setValue("data", JSON.stringify($.npu.data));
+				GM_setValue("data", JSON.stringify(npu.data));
 			});
 		},
 		
 		/* Gets the specified property or all data of the specified user or the current user */
 		getUserData: function(domain, user, key) {
-			domain = domain ? domain : $.npu.domain;
-			user = user ? user : $.npu.user;
+			domain = domain ? domain : npu.domain;
+			user = user ? user : npu.user;
 			key = Array.prototype.slice.call(arguments).slice(2);
 			key = key.length == 1 && typeof key[0].length != "undefined" ? key[0] : key;
-			return $.npu.getChild($.npu.data, ["users", domain, user, "data"].concat(key));
+			return npu.getChild(npu.data, ["users", domain, user, "data"].concat(key));
 		},
 		
 		/* Sets the specified property of the specified user or the current user */
 		setUserData: function(domain, user, key, value) {
-			domain = domain ? domain : $.npu.domain;
-			user = user ? user : $.npu.user;
+			domain = domain ? domain : npu.domain;
+			user = user ? user : npu.user;
 			key = Array.prototype.slice.call(arguments).slice(2, arguments.length - 1);
 			key = key.length == 1 && typeof key[0].length != "undefined" ? key[0] : key;
 			value = arguments.length > 4 ? arguments[arguments.length - 1] : value;
-			$.npu.setChild($.npu.data, ["users", domain, user, "data"].concat(key), value);
+			npu.setChild(npu.data, ["users", domain, user, "data"].concat(key), value);
 		},
 		
 		/* Upgrade the data schema to the latest version */
 		upgradeSchema: function() {
-			var ver = typeof $.npu.data.version != "undefined" ? $.npu.data.version : 0;
+			var ver = typeof npu.data.version != "undefined" ? npu.data.version : 0;
 			
 			/* < 1.3 */
 			if(ver < 1) {
@@ -126,7 +123,7 @@ $.npu = {
 				catch(e) { }
 				if(users != null && typeof users.length != "undefined") {
 					for(var i = 0; i < users.length; i++) {
-						$.npu.setChild($.npu.data, ["users", $.npu.domain, users[i][0].toUpperCase(), "password"], $.npu.encodeBase64(users[i][1]));
+						npu.setChild(npu.data, ["users", npu.domain, users[i][0].toUpperCase(), "password"], npu.encodeBase64(users[i][1]));
 					}
 				}
 				try {
@@ -136,31 +133,21 @@ $.npu = {
 				if(typeof courses == "object") {
 					for(var user in courses) {
 						for(var subject in courses[user]) {
-							$.npu.setUserData(null, user, ["courses", "_legacy", subject], courses[user][subject]);
+							npu.setUserData(null, user, ["courses", "_legacy", subject], courses[user][subject]);
 						}
 					}
 				}
-				$.npu.data.version = 1;
+				npu.data.version = 1;
 			}
 			
-			$.npu.saveData();
-		},
-		
-		/* Initializes the sync feature on page load */
-		initSync: function() {
-			
-		},
-		
-		/* Performs a sync with the Neptun PowerUp! server */
-		sync: function(options) {
-			
+			npu.saveData();
 		},
 	
 	/* == LOGIN == */
 	
 		/* Returns users with stored credentials */
 		getLoginUsers: function() {
-			var users = [], list = $.npu.getChild($.npu.data, ["users", $.npu.domain]);
+			var users = [], list = npu.getChild(npu.data, ["users", npu.domain]);
 			for(var user in list) {
 				if(typeof list[user].password == "string" && list[user].password != "") {
 					users.push(user);
@@ -171,7 +158,7 @@ $.npu = {
 	
 		/* Load and display user select field */
 		initUserSelect: function() {
-			var users = $.npu.getLoginUsers();
+			var users = npu.getLoginUsers();
 
 			$(".login_left_side .login_input").css("text-align", "left");
 			
@@ -190,14 +177,14 @@ $.npu = {
 			$("option[class!=neptun_kod]", selectField).css("font-size", "0.8em").css("font-family", "tahoma").css("font-weight", "normal").css("color", "#666").css("font-style", "italic");
 			$("option.user_separator", selectField).css("font-size", "0.5em");
 			
-			selectField.bind("mousedown focus change", function() { $.npu.abortLogin() });
-			$("#pwd, #Submit, #btnSubmit").bind("mousedown focus change", function() { $.npu.abortLogin() });
+			selectField.bind("mousedown focus change", function() { npu.abortLogin() });
+			$("#pwd, #Submit, #btnSubmit").bind("mousedown focus change", function() { npu.abortLogin() });
 			
 			selectField.bind("change", function() {
-				$.npu.clearLogin();
+				npu.clearLogin();
 				
 				if($(this).val() == "__OTHER__") {
-					$.npu.hideSelect();
+					npu.hideSelect();
 					return false;
 				}
 				
@@ -215,7 +202,7 @@ $.npu = {
 					var deleted = false;
 					for(var i = 0; i < users.length; i++) {
 						if(users[i] == itemToDelete.toUpperCase() || itemToDelete.toUpperCase() == "MINDEGYIKET") {
-							$.npu.setChild($.npu.data, ["users", $.npu.domain, users[i], "password"], null);
+							npu.setChild(npu.data, ["users", npu.domain, users[i], "password"], null);
 							deleted = true;
 						}
 					}
@@ -227,7 +214,7 @@ $.npu = {
 						return false;
 					}
 					
-					$.npu.saveData();
+					npu.saveData();
 					
 					if(itemToDelete.toUpperCase() == "MINDEGYIKET") {
 						alert("Az összes tárolt neptun kód törölve lett a bejelentkezési listából.");
@@ -241,10 +228,10 @@ $.npu = {
 				}
 				
 				$("#user").val(users[$(this).get(0).selectedIndex]);
-				$("#pwd").val($.npu.decodeBase64($.npu.getChild($.npu.data, ["users", $.npu.domain, users[$(this).get(0).selectedIndex], "password"])));
+				$("#pwd").val(npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$(this).get(0).selectedIndex], "password"])));
 			});
 			
-			$("input[type=submit].login_button").attr("onclick", "").bind("click", function(e) {
+			$("input[type=button].login_button").attr("onclick", "").bind("click", function(e) {
 				e.preventDefault();
 				
 				if($("#user_sel").val() == "__OTHER__") {
@@ -261,10 +248,10 @@ $.npu = {
 					
 					if(foundID == -1) {
 						if(confirm("Szeretnéd menteni a beírt adatokat, hogy késobb egy kattintással be tudj lépni errol a számítógéprol?")) {
-							$.npu.setChild($.npu.data, ["users", $.npu.domain, $("#user").val().toUpperCase(), "password"], $.npu.encodeBase64($("#pwd").val()));
-							$.npu.saveData();
+							npu.setChild(npu.data, ["users", npu.domain, $("#user").val().toUpperCase(), "password"], npu.encodeBase64($("#pwd").val()));
+							npu.saveData();
 						}
-						$.npu.submitLogin();
+						npu.submitLogin();
 						return;
 					}
 					else {
@@ -276,25 +263,25 @@ $.npu = {
 					return;
 				}
 				
-				if($("#pwd").val() != $.npu.decodeBase64($.npu.getChild($.npu.data, ["users", $.npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"]))) {
+				if($("#pwd").val() != npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"]))) {
 					if(confirm("Szeretnéd megváltoztatni a(z) " + $("#user").val().toUpperCase() + " felhasználó tárolt jelszavát a most beírt jelszóra?")) {
-						$.npu.setChild($.npu.data, ["users", $.npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"], $.npu.encodeBase64($("#pwd").val()));
-						$.npu.saveData();
+						npu.setChild(npu.data, ["users", npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"], npu.encodeBase64($("#pwd").val()));
+						npu.saveData();
 					}
 				}
 				
-				$.npu.submitLogin();
+				npu.submitLogin();
 				return;
 			});
 			
 			$("#user").parent().append(selectField);
-			$.npu.showSelect();
+			npu.showSelect();
 			selectField.trigger("change");
 		},
 		
 		/* Initialize auto login and start countdown */
 		initAutoLogin: function() {
-			var users = $.npu.getLoginUsers();
+			var users = npu.getLoginUsers();
 			
 			if(users.length < 1) {
 				return;
@@ -302,28 +289,32 @@ $.npu = {
 			
 			var submit = $("#Submit, #btnSubmit");
 			
-			$.npu.loginCount = 3;
-			$.npu.loginButton = submit.attr("value");
-			submit.attr("value", $.npu.loginButton + " (" + $.npu.loginCount + ")");
+			npu.loginCount = 3;
+			npu.loginButton = submit.attr("value");
+			submit.attr("value", npu.loginButton + " (" + npu.loginCount + ")");
 			
-			$(".login_button_td").append('<div id="abortLogin" style="text-align: center; margin: 23px 0 0 128px"><a href="javascript:$.npu.abortLogin()">Megszakít</a></div>');
+			$(".login_button_td").append('<div id="abortLogin" style="text-align: center; margin: 23px 0 0 128px"><a href="#" class="abort_login">Megszakít</a></div>');
+			$(".login_button_td a.abort_login").click(function(e) {
+				e.preventDefault();
+				npu.abortLogin();
+			});
 			
-			$.npu.loginTimer = window.setInterval(function() {
-				$.npu.loginCount--;
-				submit.attr("value", $.npu.loginButton + " (" + $.npu.loginCount + ")");
+			npu.loginTimer = window.setInterval(function() {
+				npu.loginCount--;
+				submit.attr("value", npu.loginButton + " (" + npu.loginCount + ")");
 				
-				if($.npu.loginCount <= 0) {
-					$.npu.submitLogin();
-					$.npu.abortLogin();
-					submit.attr("value", $.npu.loginButton + "...");
+				if(npu.loginCount <= 0) {
+					npu.submitLogin();
+					npu.abortLogin();
+					submit.attr("value", npu.loginButton + "...");
 				}
 			}, 1000);
 		},
 		
 		/* Abort the auto login countdown */
 		abortLogin: function() {
-			window.clearInterval($.npu.loginTimer);
-			$("#Submit, #btnSubmit").attr("value", $.npu.loginButton);
+			window.clearInterval(npu.loginTimer);
+			$("#Submit, #btnSubmit").attr("value", npu.loginButton);
 			$("#abortLogin").remove();
 		},
 		
@@ -337,14 +328,14 @@ $.npu = {
 		showSelect: function() {
 			$("#user").hide();
 			$("#user_sel").show().focus();
-			$.npu.runEval(' Page_Validators[0].controltovalidate = "user_sel" ');
+			npu.runEval(' Page_Validators[0].controltovalidate = "user_sel" ');
 		},
 		
 		/* Hide user select field and display original textbox */
 		hideSelect: function() {
 			$("#user_sel").hide();
 			$("#user").show().focus();
-			$.npu.runEval(' Page_Validators[0].controltovalidate = "user" ');
+			npu.runEval(' Page_Validators[0].controltovalidate = "user" ');
 		},
 		
 		/* Submit the login form */
@@ -404,15 +395,6 @@ $.npu = {
 			});
 		},
 		
-		/* Changes the training link to use async postback like it used to */
-		fixChangeTraining: function() {
-			$("#lbtnChangeTraining").attr("href", "javascript:void(0)").click(function(e) {
-				e.preventDefault();
-				unsafeWindow.Sys.WebForms.PageRequestManager.getInstance()._asyncPostBackControlClientIDs.push("lbtnChangeTraining");
-				unsafeWindow.__doPostBack("lbtnChangeTraining", "");
-			});
-		},
-		
 		/* Replace term drop-down list with buttons */
 		fixTermSelect: function() {
 			$('<style type="text/css"> .termSelect { list-style: none; padding: 0; } .termSelect li { display: inline-block; *display: inline; vertical-align: middle; margin: 0 15px 0 0; line-height: 250%; } .termSelect li a { padding: 5px; } .termSelect li a.button { color: #FFF; box-shadow: none; text-decoration: none; cursor: default; } </style>').appendTo("head");
@@ -421,10 +403,12 @@ $.npu = {
 				return $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal, #cmbTerms_cmb").first();
 			};
 			var clickExecuteButton = function() {
-				if(["0303", "h_addsubjects", "0401", "h_exams", "0503", "h_transactionlist"].indexOf($.npu.getPage()) != -1) {
+				if(["0303", "h_addsubjects", "0401", "h_exams", "0503", "h_transactionlist"].indexOf(npu.getPage()) != -1) {
 					return;
 				}
-				$("#upFilter_expandedsearchbutton").click();
+				npu.runEval(function() {
+					$("#upFilter_expandedsearchbutton").click();
+				});
 			};
 			var selectTerm = function(term) {
 				var termSelect = findTermSelect(), el = $(".termSelect a[data-value=" + term + "]");
@@ -436,17 +420,20 @@ $.npu = {
 				el.addClass("button");
 				var onChange = termSelect[0].getAttributeNode("onchange");
 				if(onChange) {
-					$.npu.runAsync(function() { $.npu.runEval(onChange.value); });
+					npu.runAsync(function() { npu.runEval(onChange.value); });
 				}
 				return true;
 			};
-			$.npu.termSelectInitialized = false;
+			
 			window.setInterval(function() {
 				var termSelect = findTermSelect();
+				if(termSelect.is(":disabled")) {
+					return;
+				}
 				if(termSelect.is(":visible")) {
 					$(".termSelect").remove();
 					var select = $('<ul class="termSelect"></ul>');
-					var stored = $.npu.getUserData(null, null, ["termSelect", $.npu.getPage()]);
+					var stored = npu.getUserData(null, null, ["termSelect", npu.getPage()]);
 					var found = false;
 					$("option", termSelect).each(function() {
 						if($(this).attr("value") == "-1") { return; }
@@ -460,8 +447,8 @@ $.npu = {
 							if(selectTerm(term)) {
 								if(stored != term) {
 									stored = term;
-									$.npu.setUserData(null, null, ["termSelect", $.npu.getPage()], term);
-									$.npu.saveData();
+									npu.setUserData(null, null, ["termSelect", npu.getPage()], term);
+									npu.saveData();
 								}
 								clickExecuteButton();
 							}
@@ -470,8 +457,8 @@ $.npu = {
 					});
 					termSelect.parent().append(select);
 					termSelect.hide();
-					if(!$.npu.termSelectInitialized) {
-						$.npu.termSelectInitialized = true;
+					if(!termSelect.data("initialized")) {
+						termSelect.data("initialized", true);
 						if(found && termSelect.val() != stored) {
 							selectTerm(stored);
 							clickExecuteButton();
@@ -496,7 +483,7 @@ $.npu = {
 						e.attr("data-listing", "1").val("500");
 						var onChange = this.getAttributeNode("onchange");
 						if(onChange) {
-							$.npu.runEval(onChange.value);
+							npu.runEval(onChange.value);
 						}
 					}
 				});
@@ -524,13 +511,15 @@ $.npu = {
 			keepAlive();
 			
 			window.setInterval(function() {
-				unsafeWindow.ShowModal = function() { };
-				unsafeWindow.clearTimeout(unsafeWindow.timerID);
-				unsafeWindow.clearTimeout(unsafeWindow.timerID2);
+				npu.runEval(function() {
+					ShowModal = function() { };
+					clearTimeout(timerID);
+					clearTimeout(timerID2);
+					sessionEndDate = null;
+				});
 				if($("#npuStatus").size() == 0) {
 					$("#upTraining_lblRemainingTime").html('<span id="npuStatus" style="font-weight: normal"><a href="https://userscripts.org/scripts/show/157733" target="_blank">Neptun PowerUp!</a> v' + GM_info["script"]["version"] + '</span>');
 				}
-				unsafeWindow.sessionEndDate = null;
 			}, 1000);
 		},
 		
@@ -541,12 +530,14 @@ $.npu = {
 			$("#progress, #customtextprogress").css("visibility", "hidden");
 			$('<div id="npu_loading">Kis türelmet...</div>').appendTo("body");
 			
-			var manager = unsafeWindow.Sys.WebForms.PageRequestManager.getInstance();
-			manager.add_beginRequest(function(a,b) {
-				$("#npu_loading").show();
-			});
-			manager.add_endRequest(function() {
-				$("#npu_loading").hide();
+			npu.runEval(function() {
+				var manager = Sys.WebForms.PageRequestManager.getInstance();
+				manager.add_beginRequest(function(a, b) {
+					$("#npu_loading").show();
+				});
+				manager.add_endRequest(function() {
+					$("#npu_loading").hide();
+				});
 			});
 		},
 		
@@ -556,18 +547,20 @@ $.npu = {
 		fixTimetable: function() {
 			window.setInterval(function() {
 				if($("#gridcontainer").attr("data-bound") != "1") {
-					var options = $("#gridcontainer").BcalGetOp();
-					if(typeof options != "undefined" && options != null) {
-						$("#gridcontainer").attr("data-bound", "1");
-						var callback = options.onAfterRequestData;
-						options.onAfterRequestData = function(n) {
-							if($("#gridcontainer").attr("data-called") != "1") {
-								$("#gridcontainer").attr("data-called", "1");
-								$("#upFunction_c_common_timetable_upTimeTable .showtoday").trigger("click");
+					npu.runEval(function() {
+						var options = $("#gridcontainer").BcalGetOp();
+						if(typeof options != "undefined" && options != null) {
+							$("#gridcontainer").attr("data-bound", "1");
+							var callback = options.onAfterRequestData;
+							options.onAfterRequestData = function(n) {
+								if($("#gridcontainer").attr("data-called") != "1") {
+									$("#gridcontainer").attr("data-called", "1");
+									$("#upFunction_c_common_timetable_upTimeTable .showtoday").trigger("click");
+								}
+								callback(n);
 							}
-							callback(n);
 						}
-					}
+					});
 				}
 			}, 100);
 		},
@@ -605,7 +598,7 @@ $.npu = {
 			
 			$("body").on("click", "#h_addsubjects_gridSubjects_bodytable tbody td", function(e) {
 				if($(e.target).closest("td[onclick], span.link").size() == 0 && $(e.target).closest("td.contextcell_sel, td.contextcell").size() == 0) {
-					$.npu.runEval($("td[onmousemove] span.link", $(this).closest("tr")).attr("onclick"));
+					npu.runEval($("td[onmousemove] span.link", $(this).closest("tr")).attr("onclick"));
 					e.preventDefault();
 					return false;
 				}
@@ -626,18 +619,25 @@ $.npu = {
 		
 		/* Automatically press submit button on course list page */
 		initCourseAutoList: function() {
-			var manager = unsafeWindow.Sys.WebForms.PageRequestManager.getInstance();
-			manager.add_beginRequest(function() {
-				$.npu.courseListLoading = true;
+			npu.runEval(function() {
+				var manager = Sys.WebForms.PageRequestManager.getInstance();
+				var courseListLoading = false;
+				manager.add_beginRequest(function() {
+					courseListLoading = true;
+				});
+				manager.add_endRequest(function() {
+					courseListLoading = false;
+				});
+				window.setInterval(function() {
+					if(!courseListLoading && $("#h_addsubjects_gridSubjects_gridmaindiv").size() == 0) {
+						$("#upFilter_expandedsearchbutton").click();
+					}
+				}, 250);
 			});
-			manager.add_endRequest(function() {
-				$.npu.courseListLoading = false;
+			
+			$("body").on("change", "#upFilter_chkFilterCourses", function() {
+				$("#upFunction_h_addsubjects_upGrid").html("");
 			});
-			window.setInterval(function() {
-				if(!$.npu.courseListLoading && $("#h_addsubjects_gridSubjects_gridmaindiv").size() == 0) {
-					$("#upFilter_expandedsearchbutton").click();
-				}
-			}, 250);
 		},
 		
 		/* Initialize course choice storage and mark subject and course lines with stored course choices */
@@ -646,8 +646,8 @@ $.npu = {
 			
 			var loadCourses = function() {
 				courses = { };
-				$.extend(courses, $.npu.getUserData(null, null, ["courses", "_legacy"]));
-				$.extend(courses, $.npu.getUserData(null, null, ["courses", $.npu.training]));
+				$.extend(courses, npu.getUserData(null, null, ["courses", "_legacy"]));
+				$.extend(courses, npu.getUserData(null, null, ["courses", npu.training]));
 			};
 			
 			var refreshScreen = function() {
@@ -662,7 +662,7 @@ $.npu = {
 				var table = $("#h_addsubjects_gridSubjects_bodytable");
 				if(table.size() > 0 && table.attr("data-choices-displayed") != "1") {
 					table.attr("data-choices-displayed", "1");
-					var filterEnabled = $.npu.getUserData(null, null, "filterCourses");
+					var filterEnabled = npu.getUserData(null, null, "filterCourses");
 					$("tbody tr", table).each(function() {
 						var subjectCode = $("td:nth-child(3)", this).text().trim().toUpperCase();
 						var choices = courses[subjectCode.trim().toUpperCase()];
@@ -681,11 +681,11 @@ $.npu = {
 						var clearAll = $('<td id="npu_clear_courses"><a style="color: #C00; line-height: 17px; margin-right: 30px" href="">Tárolt kurzusok törlése</a></td>');
 						$("a", clearAll).click(function(e) {
 							e.preventDefault();
-							if(confirm($.npu.user + " felhasználó összes tárolt kurzusa törölve lesz ezen a képzésen. Valóban ezt szeretnéd?")) {
-								$.npu.setUserData(null, null, ["courses", $.npu.training], { });
-								$.npu.setUserData(null, null, ["courses", "_legacy"], { });
-								$.npu.setUserData(null, null, "filterCourses", false);
-								$.npu.saveData();
+							if(confirm(npu.user + " felhasználó összes tárolt kurzusa törölve lesz ezen a képzésen. Valóban ezt szeretnéd?")) {
+								npu.setUserData(null, null, ["courses", npu.training], { });
+								npu.setUserData(null, null, ["courses", "_legacy"], { });
+								npu.setUserData(null, null, "filterCourses", false);
+								npu.saveData();
 								loadCourses();
 								refreshScreen();
 							}
@@ -695,8 +695,8 @@ $.npu = {
 					if($("#npu_filter_courses").size() == 0) {
 						var filterCell = $('<td id="npu_filter_courses" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_field">Csak a tárolt kurzusok megjelenítése</label></td>');
 						$("input", filterCell).change(function(e) {
-							$.npu.setUserData(null, null, "filterCourses", $(this).get(0).checked);
-							$.npu.saveData();
+							npu.setUserData(null, null, "filterCourses", $(this).get(0).checked);
+							npu.saveData();
 							refreshScreen();
 						});
 						pager.prepend(filterCell);
@@ -765,8 +765,8 @@ $.npu = {
 										alert("A tároláshoz elobb válaszd ki a tárolandó kurzusokat.");
 									}
 									else {
-										$.npu.setUserData(null, null, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], selectedCourses);
-										$.npu.saveData();
+										npu.setUserData(null, null, ["courses", npu.training, subjectCode.trim().toUpperCase()], selectedCourses);
+										npu.saveData();
 										loadCourses();
 										refreshScreen();
 									}
@@ -781,15 +781,17 @@ $.npu = {
 									});
 								});
 								$(".npu_course_choice_actions .npu_course_choice_apply").click(function() {
-									$(".npu_course_choice_actions .npu_course_choice_load").trigger("click");
+									npu.runEval(function() {
+										$(".npu_course_choice_actions .npu_course_choice_load").trigger("click");
+									});
 									var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
 									try { obj.SelectFunction("update"); } catch(ex) { }
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
 									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
-										$.npu.setUserData(null, null, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], null);
-										$.npu.setUserData(null, null, ["courses", "_legacy", subjectCode.trim().toUpperCase()], null);
-										$.npu.saveData();
+										npu.setUserData(null, null, ["courses", npu.training, subjectCode.trim().toUpperCase()], null);
+										npu.setUserData(null, null, ["courses", "_legacy", subjectCode.trim().toUpperCase()], null);
+										npu.saveData();
 										loadCourses();
 										refreshScreen();
 									}
@@ -809,7 +811,9 @@ $.npu = {
 			$('<style type="text/css"> #h_exams_gridExamList_bodytable tr.gridrow_blue td { background: #F8EFB1 !important; font-weight: bold; color: #525659 !important; } #h_exams_gridExamList_bodytable tr { cursor: pointer; } </style>').appendTo("head");
 			$("body").on("click", "#h_exams_gridExamList_bodytable tbody td", function(e) {
 				if($(e.target).closest("td[onclick], td.contextcell_sel, td.contextcell").size() == 0) {
-					$("td.contextcell, td.contextcell_sel", $(this).closest("tr")).trigger("click");
+					npu.runEval(function() {
+						$("td.contextcell, td.contextcell_sel", $(this).closest("tr")).trigger("click");
+					});
 					e.preventDefault();
 					return false;
 				}
@@ -828,7 +832,9 @@ $.npu = {
 					panel.attr("data-listing", "1");
 					$.examListTerm = $("#upFilter_cmbTerms option[selected]").attr("value");
 					$.examListSubject = $.examListSubjectValue;
-					$("#upFilter_expandedsearchbutton").click();
+					npu.runEval(function() {
+						$("#upFilter_expandedsearchbutton").click();
+					});
 				}
 			}, 100);
 		},
@@ -840,21 +846,21 @@ $.npu = {
 		
 		/* Initialize statistics */
 		initStat: function() {
-			var code = $.npu.getUserData(null, null, ["statCode"]);
+			var code = npu.getUserData(null, null, ["statCode"]);
 			if(code == null) {
-				code = $.npu.generateToken();
-				$.npu.setUserData(null, null, ["statSalt"], null);
-				$.npu.setUserData(null, null, ["statCode"], code);
-				$.npu.saveData();
+				code = npu.generateToken();
+				npu.setUserData(null, null, ["statSalt"], null);
+				npu.setUserData(null, null, ["statCode"], code);
+				npu.saveData();
 			}
 			setTimeout(function() {
 				try {
-					var h = new $.npu.jsSHA($.npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
+					var h = new npu.jsSHA(npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
 					GM_xmlhttpRequest({
 						method: "POST",
 						data: $.param({
 							version: GM_info["script"]["version"],
-							domain: $.npu.domain,
+							domain: npu.domain,
 							user: h.substring(0, 32),
 							uri: window.location.href
 						}),
@@ -863,7 +869,7 @@ $.npu = {
 						},
 						synchronous: false,
 						timeout: 10000,
-						url: $.npu.statHost
+						url: npu.statHost
 					});
 				}
 				catch(e) { }
@@ -874,9 +880,9 @@ $.npu = {
 	
 		/* Initialize and cache parameters that do not change dynamically */
 		initParameters: function() {
-			$.npu.user = $.npu.getUser();
-			$.npu.domain = $.npu.getDomain();
-			$.npu.training = $.npu.getTraining();
+			npu.user = npu.getUser();
+			npu.domain = npu.getDomain();
+			npu.training = npu.getTraining();
 		},
 	
 		/* Parses and returns the first-level domain of the site */
@@ -1039,7 +1045,7 @@ c^~a&b}function J(a,c,b){return a&c^a&b^c&b}function K(a){return k(a,2)^k(a,13)^
 65535)+(f&65535)+(e&65535);return((a>>>16)+(c>>>16)+(b>>>16)+(f>>>16)+(e>>>16)+(g>>>16)&65535)<<16|g&65535}function q(a,c,b){var f,e,g,h,k,q,r,C,u,d,l,m,n,A,s,p,v,w,x,y,z,D,E,F,G,t=[],H,B=[1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,
 3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298];d=[3238371032,914150663,812702999,4144912697,4290775857,1750603025,1694076839,3204075428];f=[1779033703,3144134277,1013904242,
 2773480762,1359893119,2600822924,528734635,1541459225];if("SHA-224"===b||"SHA-256"===b)l=64,A=16,s=1,G=Number,p=O,v=P,w=Q,x=M,y=N,z=K,D=L,F=J,E=I,d="SHA-224"===b?d:f;else throw"Unexpected error in SHA-2 implementation";a[c>>>5]|=128<<24-c%32;a[(c+65>>>9<<4)+15]=c;H=a.length;for(m=0;m<H;m+=A){c=d[0];f=d[1];e=d[2];g=d[3];h=d[4];k=d[5];q=d[6];r=d[7];for(n=0;n<l;n+=1)t[n]=16>n?new G(a[n*s+m],a[n*s+m+1]):v(y(t[n-2]),t[n-7],x(t[n-15]),t[n-16]),C=w(r,D(h),E(h,k,q),B[n],t[n]),u=p(z(c),F(c,f,e)),r=q,q=k,k=
-h,h=p(g,C),g=e,e=f,f=c,c=p(C,u);d[0]=p(c,d[0]);d[1]=p(f,d[1]);d[2]=p(e,d[2]);d[3]=p(g,d[3]);d[4]=p(h,d[4]);d[5]=p(k,d[5]);d[6]=p(q,d[6]);d[7]=p(r,d[7])}if("SHA-224"===b)a=[d[0],d[1],d[2],d[3],d[4],d[5],d[6]];else if("SHA-256"===b)a=d;else throw"Unexpected error in SHA-2 implementation";return a}"function"===typeof define&&typeof define.amd?define(function(){return r}):"undefined"!==typeof exports?"undefined"!==typeof module&&module.exports?module.exports=exports=r:exports=r:B.jsSHA=r})($.npu);
+h,h=p(g,C),g=e,e=f,f=c,c=p(C,u);d[0]=p(c,d[0]);d[1]=p(f,d[1]);d[2]=p(e,d[2]);d[3]=p(g,d[3]);d[4]=p(h,d[4]);d[5]=p(k,d[5]);d[6]=p(q,d[6]);d[7]=p(r,d[7])}if("SHA-224"===b)a=[d[0],d[1],d[2],d[3],d[4],d[5],d[6]];else if("SHA-256"===b)a=d;else throw"Unexpected error in SHA-2 implementation";return a}"function"===typeof define&&typeof define.amd?define(function(){return r}):"undefined"!==typeof exports?"undefined"!==typeof module&&module.exports?module.exports=exports=r:exports=r:B.jsSHA=r})(npu);
 
 /* Run the script */
-$.npu.init();
+npu.init();

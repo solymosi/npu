@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.46
+// @version        1.47
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -518,7 +518,7 @@ var npu = {
 					sessionEndDate = null;
 				});
 				if($("#npuStatus").size() == 0) {
-					$("#upTraining_lblRemainingTime").html('<span id="npuStatus" style="font-weight: normal"><a href="https://userscripts.org/scripts/show/157733" target="_blank">Neptun PowerUp!</a> v' + GM_info["script"]["version"] + '</span>');
+					$("#upTraining_lblRemainingTime").html('<span id="npuStatus" style="font-weight: normal"><a href="https://npu.herokuapp.com" target="_blank">Neptun PowerUp!</a> v' + GM_info["script"]["version"] + '</span>');
 				}
 			}, 1000);
 		},

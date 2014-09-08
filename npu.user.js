@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.37
+// @version        1.38
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -777,15 +777,16 @@ $.npu = {
 		
 		/* Initialize statistics */
 		initStat: function() {
-			var salt = $.npu.getUserData(null, null, ["statSalt"]);
-			if(salt == null) {
-				salt = $.npu.generateToken();
-				$.npu.setUserData(null, null, ["statSalt"], salt);
+			var code = $.npu.getUserData(null, null, ["statCode"]);
+			if(code == null) {
+				code = $.npu.generateToken();
+				$.npu.setUserData(null, null, ["statSalt"], null);
+				$.npu.setUserData(null, null, ["statCode"], code);
 				$.npu.saveData();
 				
 				setTimeout(function() {
 					try {
-						var h = new $.npu.jsSHA($.npu.user + ":" + salt, "TEXT").getHash("SHA-256", "HEX");
+						var h = new $.npu.jsSHA($.npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
 						GM_xmlhttpRequest({
 							method: "POST",
 							data: JSON.stringify({

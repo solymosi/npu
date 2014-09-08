@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.30
+// @version        1.30.1
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -660,6 +660,7 @@ $.npu = {
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
 									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
 										$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], null);
+										$.npu.setUserData(null, $.npu.user, ["courses", "_legacy", subjectCode.trim().toUpperCase()], null);
 										$.npu.saveData();
 										loadCourses();
 										refreshScreen();

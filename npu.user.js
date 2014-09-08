@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.23.1
+// @version        1.23.2
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -276,7 +276,7 @@ $.neptun = {
 		
 		/* Fix opening in new tab and add shortcuts */
 		fixMenu: function() {
-			var color = $("#upTraining_lbtnChangeTraining").css("color");
+			var color = $("#lbtnChangeTraining").css("color");
 			$('<style type="text/css">ul.menubar, .top_menu_wrapper { cursor: default !important } #mb1 li.menu-parent { color: #525659 !important } #mb1 li.menu-parent.has-target { color: ' + color + ' !important } #mb1 li.menu-parent.has-target:hover { color: #000 !important }</style>').appendTo("head");
 			$("#mb1_Tanulmanyok").attr("targeturl", "main.aspx?ctrl=0206&ismenuclick=true").attr("hoverid", "#mb1_Tanulmanyok_Leckekonyv");
 			$("#mb1_Targyak").attr("targeturl", "main.aspx?ctrl=0303&ismenuclick=true").attr("hoverid", "#mb1_Targyak_Targyfelvetel");
@@ -284,7 +284,7 @@ $.neptun = {
 			var orarend = $('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_Orarend" targeturl="main.aspx?ctrl=0203&amp;ismenuclick=true">Órarend</li>');
 			$("#mb1_Targyak").before(orarend);
 			$("#mb1_Tanulmanyok_Órarend").remove();
-			$("#Menu_neptun_Menu_neptun li[targeturl]").css("position", "relative").each(function() {
+			$("#Menu_neptun_neptun li[targeturl]").css("position", "relative").each(function() {
 				$(this).addClass("has-target");
 				var a = $('<a href="' + $(this).attr("targeturl") + '" style="display: block; position: absolute; left: 0; top: 0; width: 100%; height: 100%"></a>');
 				a.click(function(e) {
@@ -304,7 +304,7 @@ $.neptun = {
 		fixTermSelect: function() {
 			$('<style type="text/css"> .termSelect { list-style: none; padding: 0; } .termSelect li { display: inline-block; *display: inline; vertical-align: middle; margin: 0 15px 0 0; line-height: 250%; } .termSelect li a { padding: 5px; } .termSelect li a.button { color: #FFF; box-shadow: none; text-decoration: none; cursor: default; } </style>').appendTo("head");
 			window.setInterval(function() {
-				var termSelect = $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb").first();
+				var termSelect = $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal").first();
 				if(termSelect.is(":visible")) {
 					$(".termSelect").remove();
 					var select = $('<ul class="termSelect"></ul>');
@@ -392,31 +392,31 @@ $.neptun = {
 		
 		/* Enhance course list style and functionality */
 		fixCourseList: function() {
-			$('<style type="text/css"> #upFunction_h_addsubjects_upGrid_gridSubjects_bodytable tr.Row1_Bold td, #upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable tr.Row1_sel td, #upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable tr.Row1_Bold_sel td { background: #F8EFB1 !important; font-weight: bold; color: #525659; } #upFunction_h_addsubjects_upGrid_gridSubjects_bodytable tr, #upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable tr { cursor: pointer; } #upFunction_h_addsubjects_upGrid_gridSubjects_bodytable tr.npu_completed td { background: #D5EFBA !important; font-weight: bold; color: #525659; } </style>').appendTo("head");
-			$("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable tbody td").live("click", function(e) {
+			$('<style type="text/css"> #h_addsubjects_gridSubjects_bodytable tr.Row1_Bold td, #Addsubject_course1_gridCourses_bodytable tr.Row1_sel td, #Addsubject_course1_gridCourses_bodytable tr.Row1_Bold_sel td, #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow td { background-color: #F8EFB1 !important; font-weight: bold; color: #525659; } #h_addsubjects_gridSubjects_bodytable tr, #Addsubject_course1_gridCourses_bodytable tr { cursor: pointer; } #h_addsubjects_gridSubjects_bodytable tr.npu_completed td, #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow[data-completed] td { background-color: #D5EFBA !important; font-weight: bold; color: #525659; } #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow { border: 0 none !important; border-bottom: 1px solid #D3D3D3 !important; } </style>').appendTo("head");
+			$("body").on("click", "#Addsubject_course1_gridCourses_bodytable tbody td", function(e) {
 				if($(e.target).closest("input[type=checkbox]").size() == 0 && $(e.target).closest("td[onclick]").size() == 0) {
 					var checkbox = $("input[type=checkbox]", $(this).closest("tr")).get(0);
 					checkbox.checked = !checkbox.checked;
-					var obj = unsafeWindow[$("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_gridmaindiv").attr("instanceid")];
+					var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
 					try { obj.Cv($("input[type=checkbox]", $(this).closest("tr")).get(0), "1"); } catch(ex) { }
 					e.preventDefault();
 					return false;
 				}
 			});
-			$("#upFunction_h_addsubjects_upGrid_gridSubjects_bodytable tbody td").live("click", function(e) {
-				if($(e.target).closest("td[onclick]").size() == 0 && $(e.target).closest("td.contextcell_sel").size() == 0) {
+			$("body").on("click", "#h_addsubjects_gridSubjects_bodytable tbody td", function(e) {
+				if($(e.target).closest("td[onclick]").size() == 0 && $(e.target).closest("td.contextcell_sel, td.contextcell").size() == 0) {
 					$.neptun.runEval($("td[onclick]", $(this).closest("tr")).attr("onclick"));
 					e.preventDefault();
 					return false;
 				}
 			});
 			window.setInterval(function() {
-				var table = $("#upFunction_h_addsubjects_upGrid_gridSubjects_bodytable");
+				var table = $("#h_addsubjects_gridSubjects_bodytable");
 				if(table.attr("data-painted") != "1") {
 					table.attr("data-painted", "1");
 					$("tbody tr", table).each(function() {
 						if($('td[n="Completed"] img', this).size() != 0) {
-							$(this).addClass("npu_completed");
+							$(this).addClass("npu_completed").attr("data-completed", "1");
 						}
 					});
 				}
@@ -426,13 +426,13 @@ $.neptun = {
 		/* Automatically press submit button on course list page */
 		initCourseAutoList: function() {
 			window.setInterval(function() {
-				if(!$.courseListCalled && $("#upFunction_h_addsubjects_upGrid_gridSubjects_gridmaindiv").size() == 0) {
+				if(!$.courseListCalled && $("#h_addsubjects_gridSubjects_gridmaindiv").size() == 0) {
 					$.courseListCalled = true;
 					$("#upFilter_expandedsearchbutton").click();
 				}
 			}, 250);
 			window.setInterval(function() {
-				if($.courseListCalled && $("#upFunction_h_addsubjects_upGrid_gridSubjects_gridmaindiv").size() != 0) {
+				if($.courseListCalled && $("#h_addsubjects_gridSubjects_gridmaindiv").size() != 0) {
 					$.courseListCalled = false;
 				}
 			}, 100);
@@ -440,16 +440,16 @@ $.neptun = {
 		
 		/* Initialize course choice storage and mark subject and course lines with stored course choices */
 		initCourseStore: function() {
-			$('<style type="text/css"> #upFunction_h_addsubjects_upGrid_gridSubjects_bodytable tr td.npu_choice_mark, #upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable  tr td.npu_choice_mark { background: #C00 !important } </style>').appendTo("head");
+			$('<style type="text/css"> #h_addsubjects_gridSubjects_bodytable tr td.npu_choice_mark, #Addsubject_course1_gridCourses_bodytable  tr td.npu_choice_mark { background: #C00 !important } </style>').appendTo("head");
 			this.loadCourseChoices();
 			var currentUser = this.getUserID();
 			var refreshScreen = function() {
-				$("#upFunction_h_addsubjects_upGrid_gridSubjects_bodytable").attr("data-choices-displayed", "0");
-				$("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable").attr("data-inner-choices-displayed", "0");
+				$("#h_addsubjects_gridSubjects_bodytable").attr("data-choices-displayed", "0");
+				$("#Addsubject_course1_gridCourses_bodytable").attr("data-inner-choices-displayed", "0");
 			};
 			
 			window.setInterval(function() {
-				var table = $("#upFunction_h_addsubjects_upGrid_gridSubjects_bodytable");
+				var table = $("#h_addsubjects_gridSubjects_bodytable");
 				if(table.attr("data-choices-displayed") != "1") {
 					table.attr("data-choices-displayed", "1");
 					if(typeof $.neptun.courseChoices[currentUser] == "undefined") {
@@ -466,7 +466,7 @@ $.neptun = {
 						}
 					});
 					if($("#npu_clear_course_choices").size() == 0) {
-						var pager = $("#upFunction_h_addsubjects_upGrid_gridSubjects_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
+						var pager = $("#h_addsubjects_gridSubjects_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
 						var clearAll = $('<a style="color: #C00; line-height: 17px; margin-right: 30px" href="" id="npu_clear_course_choices">Tárolt kurzusok törlése</a>');
 						clearAll.click(function(e) {
 							e.preventDefault();
@@ -480,13 +480,13 @@ $.neptun = {
 					}
 				}
 				
-				var innerTable = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable");
+				var innerTable = $("#Addsubject_course1_gridCourses_bodytable");
 				if(innerTable.attr("data-inner-choices-displayed") != "1") {
 					innerTable.attr("data-inner-choices-displayed", "1");
 					$("tbody tr", innerTable).each(function() {
 						$("input[type=checkbox]", this).removeAttr("disabled");
 					});
-					var subjectText = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects .subtitle_table h2").html();
+					var subjectText = $("#upFunction_h_addsubjects_upModal_upmodal_subjectdata_ctl02_Subject_data1_upParent_tab_ctl00_upAddSubjects .subtitle_table h2").html();
 					if(subjectText != null) {
 						var subjectCode = subjectText.match(/^.*\((.*)\)<br>.*$/)[1];
 						if(typeof subjectCode != "undefined") {
@@ -510,8 +510,8 @@ $.neptun = {
 								$("tbody tr td:first-child", innerTable).removeClass("npu_choice_mark");
 							}
 							if($(".npu_course_choice_actions").size() == 0) {
-								var header = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_gridmaindiv .grid_functiontable_top .functionitem");
-								var footer = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_tablebottom .grid_functiontable_bottom .functionitem");
+								var header = $("#Addsubject_course1_gridCourses_gridmaindiv .grid_functiontable_top .functionitem");
+								var footer = $("#Addsubject_course1_gridCourses_tablebottom .grid_functiontable_bottom .functionitem");
 								var buttonBarExtensions = $('<span class="npu_course_choice_actions" style="margin: 0 20px"><span class="FunctionCommandTitle">Tárolt kurzusok:</span><input type="button" value="Tárolás" class="gridbutton npu_course_choice_save"><input type="button" value="Betöltés" class="gridbutton npu_course_choice_load" style="display: none"><input type="button" value="Betöltés és Mentés" class="gridbutton npu_course_choice_apply" style="display: none"><input type="button" value="Törlés" class="gridbutton npu_course_choice_delete" style="display: none"></span>');
 								header.append(buttonBarExtensions);
 								footer.prepend(buttonBarExtensions.clone());
@@ -538,13 +538,13 @@ $.neptun = {
 										var courseCode = $("td:nth-child(2)", this).text().trim().toUpperCase();
 										var checkbox = $("input[type=checkbox]", this).get(0);
 										checkbox.checked = $.inArray(courseCode, $.neptun.courseChoices[currentUser][subjectCode.trim().toUpperCase()]) != -1;
-										var obj = unsafeWindow[$("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_gridmaindiv").attr("instanceid")];
+										var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
 										try { obj.Cv(checkbox, "1"); } catch(ex) { }
 									});
 								});
 								$(".npu_course_choice_actions .npu_course_choice_apply").click(function() {
 									$(".npu_course_choice_actions .npu_course_choice_load").trigger("click");
-									var obj = unsafeWindow[$("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_gridmaindiv").attr("instanceid")];
+									var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
 									try { obj.SelectFunction("update"); } catch(ex) { }
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
@@ -583,8 +583,8 @@ $.neptun = {
 	
 		/* Enhance exam list style and functionality */
 		fixExamList: function() {
-			$('<style type="text/css"> #upFunction_h_exams_upGrid_gridExamList_bodytable tr.gridrow_blue td { background: #F8EFB1 !important; font-weight: bold; color: #525659 !important; } #upFunction_h_exams_upGrid_gridExamList_bodytable tr { cursor: pointer; } </style>').appendTo("head");
-			$("#upFunction_h_exams_upGrid_gridExamList_bodytable tbody td").live("click", function(e) {
+			$('<style type="text/css"> #h_exams_gridExamList_bodytable tr.gridrow_blue td { background: #F8EFB1 !important; font-weight: bold; color: #525659 !important; } #h_exams_gridExamList_bodytable tr { cursor: pointer; } </style>').appendTo("head");
+			$("body").on("click", "#h_exams_gridExamList_bodytable tbody td", function(e) {
 				if($(e.target).closest("td[onclick], td.contextcell_sel, td.contextcell").size() == 0) {
 					$("td.contextcell, td.contextcell_sel", $(this).closest("tr")).trigger("click");
 					e.preventDefault();
@@ -596,7 +596,7 @@ $.neptun = {
 		/* Automatically list exams on page load and subject change */
 		initExamAutoList: function() {
 			$('<style type="text/css"> #upFilter_bodytable tr.nostyle { display: none } </style>').appendTo("head");
-			$("#upFilter_cmbSubjects").live("change", function() {
+			$("body").on("change", "#upFilter_cmbSubjects", function() {
 				$.examListSubjectValue = $(this).val();
 			});
 			window.setInterval(function() {

@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.34
+// @version        1.35
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -777,23 +777,32 @@ $.npu = {
 		
 		/* Initialize statistics */
 		initStat: function() {
+			var salt = $.npu.getUserData(null, null, ["statSalt"]);
+			if(salt == null) {
+				salt = $.npu.generateToken();
+				$.npu.setUserData(null, null, ["statSalt"], salt);
+				$.npu.saveData();
+			}
+			
 			setTimeout(function() {
-				$.npu.submitStat();
+				try {
+					$.npu.sendStat()
+				}
+				catch(e) { }
 			}, 5000);
 		},
 		
 		/* Send anonymous info to the statistics server */
-		submitStat: function() {
-			try {
-				var h = new $.npu.jsSHA($.npu.user, "TEXT").getHash("SHA-256", "HEX");
-				GM_xmlhttpRequest({
-					method: "POST",
-					data: JSON.stringify({ s: $.npu.domain, h: h.substring(0, 32), u: location.pathname + location.search }),
-					synchronous: false,
-					timeout: 10000,
-					url: $.npu.statHost
-				});
-			} catch(ignore) { }
+		sendStat: function() {
+			var salt = $.npu.getUserData(null, null, ["statSalt"]);
+			var h = new $.npu.jsSHA($.npu.user + ":" + salt, "TEXT").getHash("SHA-256", "HEX");
+			GM_xmlhttpRequest({
+				method: "POST",
+				data: JSON.stringify({ s: $.npu.domain, h: h.substring(0, 32), u: location.pathname + location.search }),
+				synchronous: false,
+				timeout: 10000,
+				url: $.npu.statHost
+			});
 		},
 	
 	/* == MISC == */
@@ -889,6 +898,15 @@ $.npu = {
 				}
 				o = o[n];
 			}
+		},
+		
+		/* Generates a random token */
+		generateToken: function() {
+			var text = "", possible = "0123456789abcdef";
+			for(var i = 0; i < 32; i++) {
+				text += possible.charAt(Math.floor(Math.random() * possible.length));
+			}
+			return text;
 		},
 		
 		/* Encodes a string into base64 */

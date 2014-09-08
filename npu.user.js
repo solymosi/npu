@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.24.1
+// @version        1.30
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -18,15 +18,13 @@ $ = unsafeWindow.jQuery;
 
 $.npu = {
 	
-	/* == VARIABLES == */
-	
-		/* Stored login information */
-		users: [],
-	
 	/* == STARTUP == */
 	
 		/* Run features */
 		init: function() {
+			this.initParameters();
+			this.initStorage();
+			
 			if(this.isLogin()) {
 				this.initUserSelect();
 				this.initAutoLogin();
@@ -50,20 +48,120 @@ $.npu = {
 					this.fixExamList();
 					this.initExamAutoList();
 				}
+				
+				this.initSync();
 			}
+		},
+	
+	/* == USER DATA == */
+	
+		/* Stored data */
+		data: { },
+		
+		/* Initialize the storage module */
+		initStorage: function() {
+			$.npu.loadData();
+		},
+		
+		/* Load all data from local storage */
+		loadData: function() {
+			try {
+				$.npu.data = JSON.parse(GM_getValue("data"));
+			}
+			catch(e) { }
+			$.npu.upgradeSchema();
+		},
+		
+		/* Save all data to local storage */
+		saveData: function() {
+			this.runAsync(function() {
+				GM_setValue("data", JSON.stringify($.npu.data));
+			});
+		},
+		
+		/* Gets the specified property or all data of the specified user or the current user */
+		getUserData: function(domain, user, key) {
+			domain = domain ? domain : $.npu.domain;
+			user = user ? user : $.npu.user;
+			key = Array.prototype.slice.call(arguments).slice(2);
+			key = key.length == 1 && typeof key[0].length != "undefined" ? key[0] : key;
+			return $.npu.getChild($.npu.data, ["users", domain, user, "data"].concat(key));
+		},
+		
+		/* Sets the specified property of the specified user or the current user */
+		setUserData: function(domain, user, key, value) {
+			domain = domain ? domain : $.npu.domain;
+			user = user ? user : $.npu.user;
+			key = Array.prototype.slice.call(arguments).slice(2, arguments.length - 1);
+			key = key.length == 1 && typeof key[0].length != "undefined" ? key[0] : key;
+			value = arguments.length > 4 ? arguments[arguments.length - 1] : value;
+			$.npu.setChild($.npu.data, ["users", domain, user, "data"].concat(key), value);
+		},
+		
+		/* Upgrade the data schema to the latest version */
+		upgradeSchema: function() {
+			var ver = typeof $.npu.data.version != "undefined" ? $.npu.data.version : 0;
+			
+			/* < 1.3 */
+			if(ver < 1) {
+				try {
+					var users = JSON.parse(GM_getValue("neptun.users"));
+				}
+				catch(e) { }
+				if(users != null && typeof users.length != "undefined") {
+					for(var i = 0; i < users.length; i++) {
+						$.npu.setChild($.npu.data, ["users", $.npu.domain, users[i][0].toUpperCase(), "password"], $.npu.encodeBase64(users[i][1]));
+					}
+				}
+				try {
+					var courses = JSON.parse(GM_getValue("neptun.courses"));
+				}
+				catch(e) { }
+				if(typeof courses == "object") {
+					for(var user in courses) {
+						for(var subject in courses[user]) {
+							$.npu.setUserData(null, user, ["courses", "_legacy", subject], courses[user][subject]);
+						}
+					}
+				}
+				$.npu.data.version = 1;
+			}
+			
+			$.npu.saveData();
+		},
+		
+		/* Initializes the sync feature on page load */
+		initSync: function() {
+			
+		},
+		
+		/* Performs a sync with the Neptun PowerUp! server */
+		sync: function(options) {
+			
 		},
 	
 	/* == LOGIN == */
 	
+		/* Returns users with stored credentials */
+		getLoginUsers: function() {
+			var users = [], list = $.npu.getChild($.npu.data, ["users", $.npu.domain]);
+			for(var user in list) {
+				if(typeof list[user].password == "string" && list[user].password != "") {
+					users.push(user);
+				}
+			}
+			return users;
+		},
+	
 		/* Load and display user select field */
 		initUserSelect: function() {
-			$.npu.loadUsers();
+			var users = $.npu.getLoginUsers();
 
 			$(".login_left_side .login_input").css("text-align", "left");
 			
 			var selectField = $('<select id="user_sel" class="bevitelimezo" name="user_sel"></select>').hide();
-			for(var i = 0; i < $.npu.users.length; i++) {
-				selectField.append('<option id="' + $.npu.users[i][0]+ '" value="' + $.npu.users[i][0] + '" class="neptun_kod">' + $.npu.users[i][0] + '</option>');
+			for(var i = 0; i < users.length; i++) {
+				selectField.append('<option id="' + users[i] + '" value="' + users[i] + '" class="neptun_kod">' + users[i] + '</option>');
 			}
 			
 			selectField.append('<option disabled="disabled" class="user_separator">&nbsp;</option>');
@@ -76,8 +174,8 @@ $.npu = {
 			$("option[class!=neptun_kod]", selectField).css("font-size", "0.8em").css("font-family", "tahoma").css("font-weight", "normal").css("color", "#666").css("font-style", "italic");
 			$("option.user_separator", selectField).css("font-size", "0.5em");
 			
-			selectField.bind("mousedown focus change", function() { $.npu.abortAutoLogin() });
-			$("#pwd, #Submit, #btnSubmit").bind("mousedown focus change", function() { $.npu.abortAutoLogin() });
+			selectField.bind("mousedown focus change", function() { $.npu.abortLogin() });
+			$("#pwd, #Submit, #btnSubmit").bind("mousedown focus change", function() { $.npu.abortLogin() });
 			
 			selectField.bind("change", function() {
 				$.npu.clearLogin();
@@ -88,48 +186,46 @@ $.npu = {
 				}
 				
 				if($(this).val() == "__DELETE__") {
-					$("#user_sel").val($.npu.users[0][0]).trigger("change");
+					$("#user_sel").val(users[0]).trigger("change");
 					var defaultString = "mindegyiket";
-					for(var i = 0; i < $.npu.users.length; i++) {
-						defaultString += "   /   " + $.npu.users[i][0];
+					for(var i = 0; i < users.length; i++) {
+						defaultString += "   /   " + users[i];
 					}
 					itemToDelete = unsafeWindow.prompt("Írd be a törlendo neptun kódot. Az összes törléséhez írd be: MINDEGYIKET", defaultString);
 					if(itemToDelete == "" || itemToDelete == null) {
 						return false;
 					}
 					
-					if(itemToDelete.toUpperCase() == "MINDEGYIKET") {
-						$.npu.users = [];
-						$.npu.saveUsers();
-						alert("Az összes tárolt neptun kód törölve lett a bejelentkezési listából.");
-						window.location.reload();
-						return false;
-					}
-					
-					var indexToDelete = -1;
-					for(var i = 0; i < $.npu.users.length; i++) {
-						if($.npu.users[i][0] == itemToDelete.toUpperCase()) {
-							indexToDelete = i;
-							itemToDelete = $.npu.users[i][0];
-							break;
+					var deleted = false;
+					for(var i = 0; i < users.length; i++) {
+						if(users[i] == itemToDelete.toUpperCase() || itemToDelete.toUpperCase() == "MINDEGYIKET") {
+							$.npu.setChild($.npu.data, ["users", $.npu.domain, users[i], "password"], null);
+							deleted = true;
 						}
 					}
-					if(indexToDelete == -1) {
+					
+					if(!deleted) {
 						if(confirm("A megadott neptun kód nincs benne a tárolt listában. Megpróbálod újra?")) {
 							$("#user_sel").val("__DELETE__").trigger("change");
 						}
 						return false;
 					}
 					
-					$.npu.users.splice(indexToDelete, 1);
-					$.npu.saveUsers();
+					$.npu.saveData();
+					
+					if(itemToDelete.toUpperCase() == "MINDEGYIKET") {
+						alert("Az összes tárolt neptun kód törölve lett a bejelentkezési listából.");
+						window.location.reload();
+						return false;
+					}
+					
 					alert("A(z) " + itemToDelete + " felhasználó törölve lett a bejelentkezési listából.");
 					window.location.reload();
 					return false;
 				}
 				
-				$("#user").val($.npu.users[$(this).get(0).selectedIndex][0]);
-				$("#pwd").val($.npu.users[$(this).get(0).selectedIndex][1]);
+				$("#user").val(users[$(this).get(0).selectedIndex]);
+				$("#pwd").val($.npu.decodeBase64($.npu.getChild($.npu.data, ["users", $.npu.domain, users[$(this).get(0).selectedIndex], "password"])));
 			});
 			
 			$("input[type=submit].login_button").attr("onclick", "").bind("click", function(e) {
@@ -141,22 +237,22 @@ $.npu = {
 					}
 					
 					var foundID = -1;
-					for(var i = 0; i < $.npu.users.length; i++) {
-						if($.npu.users[i][0] == $("#user").val().toUpperCase()) {
+					for(var i = 0; i < users.length; i++) {
+						if(users[i] == $("#user").val().toUpperCase()) {
 							foundID = i;
 						}
 					}
 					
 					if(foundID == -1) {
 						if(confirm("Szeretnéd menteni a beírt adatokat, hogy késobb egy kattintással be tudj lépni errol a számítógéprol?")) {
-							$.npu.users.push([$("#user").val().toUpperCase(), $("#pwd").val()]);
-							$.npu.saveUsers();
+							$.npu.setChild($.npu.data, ["users", $.npu.domain, $("#user").val().toUpperCase(), "password"], $.npu.encodeBase64($("#pwd").val()));
+							$.npu.saveData();
 						}
 						$.npu.submitLogin();
 						return;
 					}
 					else {
-						$("#user_sel").val($.npu.users[foundID][0]);
+						$("#user_sel").val(users[foundID]);
 					}
 				}
 				
@@ -164,10 +260,10 @@ $.npu = {
 					return;
 				}
 				
-				if($("#pwd").val() != $.npu.users[$("#user_sel").get(0).selectedIndex][1]) {
+				if($("#pwd").val() != $.npu.decodeBase64($.npu.getChild($.npu.data, ["users", $.npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"]))) {
 					if(confirm("Szeretnéd megváltoztatni a(z) " + $("#user").val().toUpperCase() + " felhasználó tárolt jelszavát a most beírt jelszóra?")) {
-						$.npu.users[$("#user_sel").get(0).selectedIndex][1] = $("#pwd").val();
-						$.npu.saveUsers();
+						$.npu.setChild($.npu.data, ["users", $.npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"], $.npu.encodeBase64($("#pwd").val()));
+						$.npu.saveData();
 					}
 				}
 				
@@ -182,51 +278,43 @@ $.npu = {
 		
 		/* Initialize auto login and start countdown */
 		initAutoLogin: function() {
-			if($.npu.users.length < 1) {
+			var users = $.npu.getLoginUsers();
+			
+			if(users.length < 1) {
 				return;
 			}
+			
 			var submit = $("#Submit, #btnSubmit");
-			$.npu.autoLoginRemaining = 3;
-			$.npu.loginButtonText = submit.attr("value");
-			submit.attr("value", $.npu.loginButtonText + " (" + $.npu.autoLoginRemaining + ")");
-			$(".login_button_td").append('<div id="abortAL" style="text-align: center; margin: 23px 0 0 128px"><a href="javascript:$.npu.abortAutoLogin()">Megszakít</a></div>');
-			$.npu.autoLoginTimer = window.setInterval(function() {
-				$.npu.autoLoginRemaining--;
-				submit.attr("value", $.npu.loginButtonText + " (" + $.npu.autoLoginRemaining + ")");
-				if($.npu.autoLoginRemaining <= 0) {
+			
+			$.npu.loginCount = 3;
+			$.npu.loginButton = submit.attr("value");
+			submit.attr("value", $.npu.loginButton + " (" + $.npu.loginCount + ")");
+			
+			$(".login_button_td").append('<div id="abortLogin" style="text-align: center; margin: 23px 0 0 128px"><a href="javascript:$.npu.abortLogin()">Megszakít</a></div>');
+			
+			$.npu.loginTimer = window.setInterval(function() {
+				$.npu.loginCount--;
+				submit.attr("value", $.npu.loginButton + " (" + $.npu.loginCount + ")");
+				
+				if($.npu.loginCount <= 0) {
 					$.npu.submitLogin();
-					$.npu.abortAutoLogin();
-					submit.attr("value", $.npu.loginButtonText + "...");
+					$.npu.abortLogin();
+					submit.attr("value", $.npu.loginButton + "...");
 				}
 			}, 1000);
 		},
 		
 		/* Abort the auto login countdown */
-		abortAutoLogin: function() {
-			window.clearInterval($.npu.autoLoginTimer);
-			$("#Submit, #btnSubmit").attr("value", $.npu.loginButtonText);
-			$("#abortAL").remove();
+		abortLogin: function() {
+			window.clearInterval($.npu.loginTimer);
+			$("#Submit, #btnSubmit").attr("value", $.npu.loginButton);
+			$("#abortLogin").remove();
 		},
 		
 		/* Clears the login form */
 		clearLogin: function() {
 			$("#user").val("");
 			$("#pwd").val("");
-		},
-		
-		/* Load all stored user data */
-		loadUsers: function() {
-			try {
-				this.users = JSON.parse(GM_getValue("neptun.users"));
-			}
-			catch(e) { }
-		},
-		
-		/* Store user data in the user profile */
-		saveUsers: function() {
-			this.runAsync(function() {
-				GM_setValue("neptun.users", JSON.stringify($.npu.users));
-			});
 		},
 		
 		/* Display user select field */
@@ -386,13 +474,11 @@ $.npu = {
 		},
 		
 	/* == COURSE LIST == */
-	
-		/* Stored course choices */
-		courseChoices: { },
 		
 		/* Enhance course list style and functionality */
 		fixCourseList: function() {
 			$('<style type="text/css"> #h_addsubjects_gridSubjects_bodytable tr.Row1_Bold td, #Addsubject_course1_gridCourses_bodytable tr.Row1_sel td, #Addsubject_course1_gridCourses_bodytable tr.Row1_Bold_sel td, #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow td { background-color: #F8EFB1 !important; font-weight: bold; color: #525659; } #h_addsubjects_gridSubjects_bodytable tr, #Addsubject_course1_gridCourses_bodytable tr { cursor: pointer; } #h_addsubjects_gridSubjects_bodytable tr.npu_completed td, #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow[data-completed] td { background-color: #D5EFBA !important; font-weight: bold; color: #525659; } #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow { border: 0 none !important; border-bottom: 1px solid #D3D3D3 !important; } </style>').appendTo("head");
+			
 			$("body").on("click", "#Addsubject_course1_gridCourses_bodytable tbody td", function(e) {
 				if($(e.target).closest("input[type=checkbox]").size() == 0 && $(e.target).closest("td[onclick]").size() == 0) {
 					var checkbox = $("input[type=checkbox]", $(this).closest("tr")).get(0);
@@ -403,6 +489,7 @@ $.npu = {
 					return false;
 				}
 			});
+			
 			$("body").on("click", "#h_addsubjects_gridSubjects_bodytable tbody td", function(e) {
 				if($(e.target).closest("td[onclick]").size() == 0 && $(e.target).closest("td.contextcell_sel, td.contextcell").size() == 0) {
 					$.npu.runEval($("td[onclick]", $(this).closest("tr")).attr("onclick"));
@@ -410,6 +497,7 @@ $.npu = {
 					return false;
 				}
 			});
+			
 			window.setInterval(function() {
 				var table = $("#h_addsubjects_gridSubjects_bodytable");
 				if(table.attr("data-painted") != "1") {
@@ -431,6 +519,7 @@ $.npu = {
 					$("#upFilter_expandedsearchbutton").click();
 				}
 			}, 250);
+			
 			window.setInterval(function() {
 				if($.courseListCalled && $("#h_addsubjects_gridSubjects_gridmaindiv").size() != 0) {
 					$.courseListCalled = false;
@@ -441,24 +530,29 @@ $.npu = {
 		/* Initialize course choice storage and mark subject and course lines with stored course choices */
 		initCourseStore: function() {
 			$('<style type="text/css"> #h_addsubjects_gridSubjects_bodytable tr td.npu_choice_mark, #Addsubject_course1_gridCourses_bodytable  tr td.npu_choice_mark { background: #C00 !important } </style>').appendTo("head");
-			this.loadCourseChoices();
-			var currentUser = this.getUserID();
+			
+			var loadCourses = function() {
+				courses = { };
+				$.extend(courses, $.npu.getUserData(null, $.npu.user, ["courses", "_legacy"]));
+				$.extend(courses, $.npu.getUserData(null, $.npu.user, ["courses", $.npu.training]));
+			};
+			
 			var refreshScreen = function() {
 				$("#h_addsubjects_gridSubjects_bodytable").attr("data-choices-displayed", "0");
 				$("#Addsubject_course1_gridCourses_bodytable").attr("data-inner-choices-displayed", "0");
 			};
 			
+			var courses = null;
+			loadCourses();
+			
 			window.setInterval(function() {
 				var table = $("#h_addsubjects_gridSubjects_bodytable");
 				if(table.size() > 0 && table.attr("data-choices-displayed") != "1") {
 					table.attr("data-choices-displayed", "1");
-					if(typeof $.npu.courseChoices[currentUser] == "undefined") {
-						$.npu.courseChoices[currentUser] = { };
-					}
 					$("tbody tr", table).each(function() {
 						var subjectCode = $("td:nth-child(3)", this).text().trim().toUpperCase();
-						var choices = $.npu.courseChoices[currentUser][subjectCode];
-						if(typeof choices != "undefined" && choices.length > 0) {
+						var choices = courses[subjectCode.trim().toUpperCase()];
+						if(typeof choices != "undefined" && choices != null && choices.length > 0) {
 							$("td:first-child", this).addClass("npu_choice_mark");
 						}
 						else {
@@ -470,9 +564,11 @@ $.npu = {
 						var clearAll = $('<a style="color: #C00; line-height: 17px; margin-right: 30px" href="" id="npu_clear_course_choices">Tárolt kurzusok törlése</a>');
 						clearAll.click(function(e) {
 							e.preventDefault();
-							if(confirm(currentUser + " felhasználó összes tárolt kurzusa törölve lesz. Valóban ezt szeretnéd?")) {
-								$.npu.courseChoices[currentUser] = { };
-								$.npu.saveCourseChoices();
+							if(confirm($.npu.user + " felhasználó összes tárolt kurzusa törölve lesz ezen a képzésen. Valóban ezt szeretnéd?")) {
+								$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training], null);
+								$.npu.setUserData(null, $.npu.user, ["courses", "_legacy"], null);
+								$.npu.saveData();
+								loadCourses();
 								refreshScreen();
 							}
 						});
@@ -497,11 +593,8 @@ $.npu = {
 					if(subjectText != null) {
 						var subjectCode = subjectText.match(/^.*\((.*)\)<br>.*$/)[1];
 						if(typeof subjectCode != "undefined") {
-							if(typeof $.npu.courseChoices[currentUser] == "undefined") {
-								$.npu.courseChoices[currentUser] = { };
-							}
-							var choices = $.npu.courseChoices[currentUser][subjectCode.trim().toUpperCase()];
-							var hasChoices = (typeof choices != "undefined" && choices.length > 0);
+							var choices = courses[subjectCode.trim().toUpperCase()];
+							var hasChoices = (typeof choices != "undefined" && choices != null && choices.length > 0);
 							if(hasChoices) {
 								$("tbody tr", innerTable).each(function() {
 									var courseCode = $("td:nth-child(2)", this).text().trim().toUpperCase();
@@ -544,8 +637,9 @@ $.npu = {
 										alert("A tároláshoz elobb válaszd ki a tárolandó kurzusokat.");
 									}
 									else {
-										$.npu.courseChoices[currentUser][subjectCode.trim().toUpperCase()] = selectedCourses;
-										$.npu.saveCourseChoices();
+										$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], selectedCourses);
+										$.npu.saveData();
+										loadCourses();
 										refreshScreen();
 									}
 								});
@@ -553,7 +647,7 @@ $.npu = {
 									$("tbody tr", innerTable).each(function() {
 										var courseCode = $("td:nth-child(2)", this).text().trim().toUpperCase();
 										var checkbox = $("input[type=checkbox]", this).get(0);
-										checkbox.checked = $.inArray(courseCode, $.npu.courseChoices[currentUser][subjectCode.trim().toUpperCase()]) != -1;
+										checkbox.checked = $.inArray(courseCode, courses[subjectCode.trim().toUpperCase()]) != -1;
 										var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
 										try { obj.Cv(checkbox, "1"); } catch(ex) { }
 									});
@@ -565,8 +659,9 @@ $.npu = {
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
 									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
-										delete $.npu.courseChoices[currentUser][subjectCode.trim().toUpperCase()];
-										$.npu.saveCourseChoices();
+										$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], null);
+										$.npu.saveData();
+										loadCourses();
 										refreshScreen();
 									}
 								});
@@ -576,23 +671,6 @@ $.npu = {
 					}
 				}
 			}, 500);
-		},
-		
-		/* Load all stored course choice data */
-		loadCourseChoices: function() {
-			try {
-				this.runAsync(function() {
-					$.npu.courseChoices = JSON.parse(GM_getValue("neptun.courses"));
-				});
-			}
-			catch(e) { }
-		},
-		
-		/* Store stored course choice data in the user profile */
-		saveCourseChoices: function() {
-			this.runAsync(function() {
-				GM_setValue("neptun.courses", JSON.stringify($.npu.courseChoices));
-			});
 		},
 		
 	/* == EXAM LIST == */
@@ -625,14 +703,40 @@ $.npu = {
 				}
 			}, 100);
 		},
-		
+	
 	/* == MISC == */
 	
+		/* Initialize and cache parameters that do not change dynamically */
+		initParameters: function() {
+			$.npu.user = $.npu.getUser();
+			$.npu.domain = $.npu.getDomain();
+			$.npu.training = $.npu.getTraining();
+		},
+	
+		/* Parses and returns the first-level domain of the site */
+		getDomain: function() {
+			var domain = "", host = location.host.split(".");
+			var tlds = ["at", "co", "com", "edu", "eu", "gov", "hu", "hr", "info", "int", "mil", "net", "org", "ro", "rs", "sk", "si", "ua", "uk"];
+			for(var i = host.length - 1; i >= 0; i--) {
+				domain = host[i] + "." + domain;
+				if($.inArray(host[i], tlds) == -1) {
+					return domain.substring(0, domain.length - 1);
+				}
+			}
+		},
+		
 		/* Parses and returns the ID of the current user */
-		getUserID: function() {
+		getUser: function() {
 			if($("#upTraining_topname").size() > 0) {
 				var input = $("#upTraining_topname").text();
 				return input.substring(input.indexOf(" - ") + 3).toUpperCase();
+			}
+		},
+		
+		/* Parses and returns the sanitized name of the current training */
+		getTraining: function() {
+			if($("#lblTrainingName").size() > 0) {
+				return $("#lblTrainingName").text().replace(/[^a-zA-Z0-9]/g, "");
 			}
 		},
 		
@@ -661,6 +765,69 @@ $.npu = {
 			script.textContent = source;
 			document.body.appendChild(script);
 			document.body.removeChild(script);
+		},
+		
+		/* Returns the child object at the provided path */
+		getChild: function(o, s) {
+			while(s.length) {
+				var n = s.shift();
+				if(!(o instanceof Object && n in o)) {
+					return;
+				}
+				o = o[n];
+			}
+			return o;
+		},
+		
+		/* Set the child object at the provided path */
+		setChild: function(o, s, v) {
+			while(s.length) {
+				var n = s.shift();
+				if(s.length == 0) {
+					o[n] = v;
+					return;
+				}
+				if(!(typeof o == "object" && n in o)) {
+					o[n] = new Object();
+				}
+				o = o[n];
+			}
+		},
+		
+		/* Encodes a string into base64 */
+		encodeBase64: function(data) {
+			var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+			var o1, o2, o3, h1, h2, h3, h4, bits, i = 0, ac = 0, enc = "", tmp_arr = [];
+			if(!data) {
+				return data;
+			}
+			do {
+				o1 = data.charCodeAt(i++); o2 = data.charCodeAt(i++); o3 = data.charCodeAt(i++);
+				bits = o1 << 16 | o2 << 8 | o3;
+				h1 = bits >> 18 & 0x3f; h2 = bits >> 12 & 0x3f; h3 = bits >> 6 & 0x3f; h4 = bits & 0x3f;
+				tmp_arr[ac++] = b64.charAt(h1) + b64.charAt(h2) + b64.charAt(h3) + b64.charAt(h4);
+			} while(i < data.length);
+			enc = tmp_arr.join("");
+			var r = data.length % 3;
+			return (r ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
+		},
+		
+		/* Decodes a string from base64 */
+		decodeBase64: function(data) {
+			var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+			var o1, o2, o3, h1, h2, h3, h4, bits, i = 0, ac = 0, dec = "", tmp_arr = [];
+			if (!data) {
+				return data;
+			}
+			data += "";
+			do {
+				h1 = b64.indexOf(data.charAt(i++)); h2 = b64.indexOf(data.charAt(i++)); h3 = b64.indexOf(data.charAt(i++)); h4 = b64.indexOf(data.charAt(i++));
+				bits = h1 << 18 | h2 << 12 | h3 << 6 | h4;
+				o1 = bits >> 16 & 0xff; o2 = bits >> 8 & 0xff; o3 = bits & 0xff;
+				tmp_arr[ac++] = (h3 == 64 ? String.fromCharCode(o1) : (h4 == 64 ? String.fromCharCode(o1, o2) : String.fromCharCode(o1, o2, o3)));
+			} while(i < data.length);
+			dec = tmp_arr.join("");
+			return dec;
 		},
 };
 

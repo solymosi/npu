@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.22.1
+// @version        1.22.2
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -463,6 +463,9 @@ $.neptun = {
 				var innerTable = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects_Addsubject_course1_upGrid_gridCourses_bodytable");
 				if(innerTable.attr("data-inner-choices-displayed") != "1") {
 					innerTable.attr("data-inner-choices-displayed", "1");
+					$("tbody tr", innerTable).each(function() {
+						$("input[type=checkbox]", this).removeAttr("disabled");
+					});
 					var subjectText = $("#upFunction_h_addsubjects_upModal_userctrlupFunction_h_addsubjects_upModal_modal_subjectdata_Subject_data1_upParent_tab_ctl00_upAddSubjects .subtitle_table h2").html();
 					if(subjectText != null) {
 						var subjectCode = subjectText.match(/^.*\((.*)\)<br>.*$/)[1];

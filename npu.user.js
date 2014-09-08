@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.35
+// @version        1.36
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -798,7 +798,12 @@ $.npu = {
 			var h = new $.npu.jsSHA($.npu.user + ":" + salt, "TEXT").getHash("SHA-256", "HEX");
 			GM_xmlhttpRequest({
 				method: "POST",
-				data: JSON.stringify({ s: $.npu.domain, h: h.substring(0, 32), u: location.pathname + location.search }),
+				data: JSON.stringify({
+					v: GM_info["script"]["version"],
+					s: $.npu.domain,
+					h: h.substring(0, 32),
+					u: location.pathname + location.search
+				}),
 				synchronous: false,
 				timeout: 10000,
 				url: $.npu.statHost

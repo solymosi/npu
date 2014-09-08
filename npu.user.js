@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.39
+// @version        1.40
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -35,6 +35,7 @@ $.npu = {
 				this.hideHeader();
 				this.fixTitle();
 				this.fixMenu();
+				this.fixChangeTraining();
 				this.fixTermSelect();
 				this.fixPagination();
 				this.initKeepSession();
@@ -402,37 +403,80 @@ $.npu = {
 			});
 		},
 		
+		/* Changes the training link to use async postback like it used to */
+		fixChangeTraining: function() {
+			$("#lbtnChangeTraining").attr("href", "javascript:void(0)").click(function(e) {
+				e.preventDefault();
+				unsafeWindow.Sys.WebForms.PageRequestManager.getInstance()._asyncPostBackControlClientIDs.push("lbtnChangeTraining");
+				unsafeWindow.__doPostBack("lbtnChangeTraining", "");
+			});
+		},
+		
 		/* Replace term drop-down list with buttons */
 		fixTermSelect: function() {
 			$('<style type="text/css"> .termSelect { list-style: none; padding: 0; } .termSelect li { display: inline-block; *display: inline; vertical-align: middle; margin: 0 15px 0 0; line-height: 250%; } .termSelect li a { padding: 5px; } .termSelect li a.button { color: #FFF; box-shadow: none; text-decoration: none; cursor: default; } </style>').appendTo("head");
+			
+			var findTermSelect = function() {
+				return $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal, #cmbTerms_cmb").first();
+			};
+			var clickExecuteButton = function() {
+				if(["0303", "h_addsubjects", "0401", "h_exams", "0503", "h_transactionlist"].indexOf($.npu.getPage()) != -1) {
+					return;
+				}
+				$("#upFilter_expandedsearchbutton").click();
+			};
+			var selectTerm = function(term) {
+				var termSelect = findTermSelect(), el = $(".termSelect a[data-value=" + term + "]");
+				if(el.size() == 0 || el.hasClass("button")) {
+					return false;
+				}
+				termSelect.val(el.attr("data-value"));
+				var onChange = termSelect[0].getAttributeNode("onchange");
+				if(onChange) {
+					$.npu.runAsync(function() { $.npu.runEval(onChange.value); });
+				}
+				return true;
+			};
+			$.npu.termSelectInitialized = false;
 			window.setInterval(function() {
-				var termSelect = $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal").first();
+				var termSelect = findTermSelect();
 				if(termSelect.is(":visible")) {
 					$(".termSelect").remove();
 					var select = $('<ul class="termSelect"></ul>');
+					var stored = $.npu.getUserData(null, null, ["termSelect", $.npu.getPage()]);
+					var found = false;
 					$("option", termSelect).each(function() {
 						if($(this).attr("value") == "-1") { return; }
 						var item = $('<li><a href="#" data-value="' + $(this).attr("value") + '" class="' + (termSelect.val() == $(this).attr("value") ? "button" : "") + '">' + $(this).html() + "</a></li>");
+						if(typeof stored != "undefined" && $(this).attr("value") == stored) {
+							found = true;
+						}
 						$("a", item).bind("click", function(e) {
 							e.preventDefault();
-							if($(this).hasClass("button")) {
-								return;
-							}
-							termSelect.val($(this).data("value"));
-							$(".termSelect li.selected").removeClass("selected");
-							item.addClass("selected");
-							var onChange = termSelect[0].getAttributeNode("onchange");
-							if(onChange) {
-								$.npu.runAsync(function() { $.npu.runEval(onChange.value); });
-							}
-							if(!$.npu.isPage("0303") && !$.npu.isPage("h_addsubjects") && !$.npu.isPage("0401") && !$.npu.isPage("h_exams") && !$.npu.isPage("0503") && !$.npu.isPage("h_transactionlist")) {
-								$("#upFilter_expandedsearchbutton").click();
+							var term = $(this).attr("data-value");
+							if(selectTerm(term)) {
+								if(stored != term) {
+									stored = term;
+									$.npu.setUserData(null, null, ["termSelect", $.npu.getPage()], term);
+									$.npu.saveData();
+								}
+								clickExecuteButton();
 							}
 						});
 						select.append(item);
 					});
 					termSelect.parent().append(select);
 					termSelect.hide();
+					if(!$.npu.termSelectInitialized) {
+						$.npu.termSelectInitialized = true;
+						if(found && termSelect.val() != stored) {
+							selectTerm(stored);
+							clickExecuteButton();
+						}
+						else if($(".grid_pagertable").size() == 0) {
+							clickExecuteButton();
+						}
+					}
 				}
 			}, 500);
 		},
@@ -563,18 +607,18 @@ $.npu = {
 		
 		/* Automatically press submit button on course list page */
 		initCourseAutoList: function() {
+			var manager = unsafeWindow.Sys.WebForms.PageRequestManager.getInstance();
+			manager.add_beginRequest(function() {
+				$.npu.courseListLoading = true;
+			});
+			manager.add_endRequest(function() {
+				$.npu.courseListLoading = false;
+			});
 			window.setInterval(function() {
-				if(!$.courseListCalled && $("#h_addsubjects_gridSubjects_gridmaindiv").size() == 0) {
-					$.courseListCalled = true;
+				if(!$.npu.courseListLoading && $("#h_addsubjects_gridSubjects_gridmaindiv").size() == 0) {
 					$("#upFilter_expandedsearchbutton").click();
 				}
 			}, 250);
-			
-			window.setInterval(function() {
-				if($.courseListCalled && $("#h_addsubjects_gridSubjects_gridmaindiv").size() != 0) {
-					$.courseListCalled = false;
-				}
-			}, 100);
 		},
 		
 		/* Initialize course choice storage and mark subject and course lines with stored course choices */
@@ -846,6 +890,12 @@ $.npu = {
 		/* Returns whether we are on the login page */
 		isLogin: function() {
 			return $("td.login_left_side").size() > 0;
+		},
+		
+		/* Returns the ID of the current page */
+		getPage: function() {
+			var result = (/ctrl=([a-zA-Z0-9_]+)/g).exec(window.location.href);
+			return result ? result[1] : null;
 		},
 		
 		/* Returns whether the specified ID is the current page */

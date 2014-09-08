@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.38
+// @version        1.39
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -780,10 +780,6 @@ $.npu = {
 			var code = $.npu.getUserData(null, null, ["statCode"]);
 			if(code == null) {
 				code = $.npu.generateToken();
-				$.npu.setUserData(null, null, ["statSalt"], null);
-				$.npu.setUserData(null, null, ["statCode"], code);
-				$.npu.saveData();
-				
 				setTimeout(function() {
 					try {
 						var h = new $.npu.jsSHA($.npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
@@ -796,7 +792,14 @@ $.npu = {
 							}),
 							synchronous: false,
 							timeout: 10000,
-							url: $.npu.statHost
+							url: $.npu.statHost,
+							onload: function(r) {
+								if(r.status == 202) {
+									$.npu.setUserData(null, null, ["statSalt"], null);
+									$.npu.setUserData(null, null, ["statCode"], code);
+									$.npu.saveData();
+								}
+							}
 						});
 					}
 					catch(e) { }

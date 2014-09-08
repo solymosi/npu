@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.23.2
+// @version        1.24
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -450,7 +450,7 @@ $.neptun = {
 			
 			window.setInterval(function() {
 				var table = $("#h_addsubjects_gridSubjects_bodytable");
-				if(table.attr("data-choices-displayed") != "1") {
+				if(table.size() > 0 && table.attr("data-choices-displayed") != "1") {
 					table.attr("data-choices-displayed", "1");
 					if(typeof $.neptun.courseChoices[currentUser] == "undefined") {
 						$.neptun.courseChoices[currentUser] = { };
@@ -481,8 +481,15 @@ $.neptun = {
 				}
 				
 				var innerTable = $("#Addsubject_course1_gridCourses_bodytable");
-				if(innerTable.attr("data-inner-choices-displayed") != "1") {
+				if(innerTable.size() > 0 && innerTable.attr("data-inner-choices-displayed") != "1") {
 					innerTable.attr("data-inner-choices-displayed", "1");
+					if($("th.headerWithCheckbox", innerTable).size() == 0) {
+						var objName = $("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid");
+						$('<th id="head_chk" class="headerWithCheckbox headerDisabled" colname="chk" title="Válasszon ki legalább egyet!" align="center"><label class="hiddenforlabel" for="Addsubject_course1_gridCourses_bodytable_chk_chkall">Összes kijelölése</label><span></span><input aria-disabled="false" role="checkbox" id="Addsubject_course1_gridCourses_bodytable_chk_chkall" onclick="' + objName + '.AllCheckBox(this.checked,\'chk\',true,1,this)" type="checkbox"><span></span></th>').appendTo("#Addsubject_course1_gridCourses_headerrow");
+						$("tbody tr", innerTable).each(function() {
+							$('<td t="chks" n="chk" class="aligncenter"><label class="hiddenforlabel" for="chk' + $(this).attr("id").substring(4) + '">' + $("td:nth-child(2)", this).text().trim() + '</label><input id="chk' + $(this).attr("id").substring(4) + '" aria-disabled="false" role="checkbox" onclick="' + objName + '.Cv(this,\'1\');" type="checkbox"></td>').appendTo(this);
+						});
+					}
 					$("tbody tr", innerTable).each(function() {
 						$("input[type=checkbox]", this).removeAttr("disabled");
 					});
@@ -512,7 +519,16 @@ $.neptun = {
 							if($(".npu_course_choice_actions").size() == 0) {
 								var header = $("#Addsubject_course1_gridCourses_gridmaindiv .grid_functiontable_top .functionitem");
 								var footer = $("#Addsubject_course1_gridCourses_tablebottom .grid_functiontable_bottom .functionitem");
-								var buttonBarExtensions = $('<span class="npu_course_choice_actions" style="margin: 0 20px"><span class="FunctionCommandTitle">Tárolt kurzusok:</span><input type="button" value="Tárolás" class="gridbutton npu_course_choice_save"><input type="button" value="Betöltés" class="gridbutton npu_course_choice_load" style="display: none"><input type="button" value="Betöltés és Mentés" class="gridbutton npu_course_choice_apply" style="display: none"><input type="button" value="Törlés" class="gridbutton npu_course_choice_delete" style="display: none"></span>');
+								var canSave = header.size() > 0;
+								if(header.size() == 0) {
+									$('<table class="grid_functiontable_top" align="left"><tbody><tr><td class="functionitem" nowrap=""></td></tr></tbody></table>').appendTo("#Addsubject_course1_gridCourses_gridmaindiv .grid_topfunctionpanel");
+									header = $(header.selector);
+								}
+								if(footer.size() == 0) {
+									$('<table class="grid_functiontable_bottom" align="right"><tbody><tr><td class="functionitem" nowrap=""></td></tr></tbody></table>').appendTo("#Addsubject_course1_gridCourses_tablebottom .grid_bottomfunctionpanel");
+									footer = $(footer.selector);
+								}
+								var buttonBarExtensions = $('<span class="npu_course_choice_actions" style="margin: 0 20px"><span class="FunctionCommandTitle">Tárolt kurzusok:</span><input type="button" value="Tárolás" class="gridbutton npu_course_choice_save"><input type="button" value="Betöltés" class="gridbutton npu_course_choice_load" style="display: none">' + (canSave ? '<input type="button" value="Betöltés és Mentés" class="gridbutton npu_course_choice_apply" style="display: none">' : "") + '<input type="button" value="Törlés" class="gridbutton npu_course_choice_delete" style="display: none"></span>');
 								header.append(buttonBarExtensions);
 								footer.prepend(buttonBarExtensions.clone());
 								$(".npu_course_choice_actions .npu_course_choice_save").click(function() {

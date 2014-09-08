@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.30.2
+// @version        1.31
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -533,8 +533,8 @@ $.npu = {
 			
 			var loadCourses = function() {
 				courses = { };
-				$.extend(courses, $.npu.getUserData(null, $.npu.user, ["courses", "_legacy"]));
-				$.extend(courses, $.npu.getUserData(null, $.npu.user, ["courses", $.npu.training]));
+				$.extend(courses, $.npu.getUserData(null, null, ["courses", "_legacy"]));
+				$.extend(courses, $.npu.getUserData(null, null, ["courses", $.npu.training]));
 			};
 			
 			var refreshScreen = function() {
@@ -549,24 +549,29 @@ $.npu = {
 				var table = $("#h_addsubjects_gridSubjects_bodytable");
 				if(table.size() > 0 && table.attr("data-choices-displayed") != "1") {
 					table.attr("data-choices-displayed", "1");
+					var filterEnabled = $.npu.getUserData(null, null, "filterCourses");
 					$("tbody tr", table).each(function() {
 						var subjectCode = $("td:nth-child(3)", this).text().trim().toUpperCase();
 						var choices = courses[subjectCode.trim().toUpperCase()];
 						if(typeof choices != "undefined" && choices != null && choices.length > 0) {
 							$("td:first-child", this).addClass("npu_choice_mark");
+							$(this).css("display", "table-row");
 						}
 						else {
 							$("td:first-child", this).removeClass("npu_choice_mark");
+							$(this).css("display", filterEnabled ? "none" : "table-row");
 						}
 					});
-					if($("#npu_clear_course_choices").size() == 0) {
-						var pager = $("#h_addsubjects_gridSubjects_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
-						var clearAll = $('<a style="color: #C00; line-height: 17px; margin-right: 30px" href="" id="npu_clear_course_choices">Tárolt kurzusok törlése</a>');
-						clearAll.click(function(e) {
+					
+					var pager = $("#h_addsubjects_gridSubjects_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
+					if($("#npu_clear_courses").size() == 0) {
+						var clearAll = $('<td id="npu_clear_courses"><a style="color: #C00; line-height: 17px; margin-right: 30px" href="">Tárolt kurzusok törlése</a></td>');
+						$("a", clearAll).click(function(e) {
 							e.preventDefault();
 							if(confirm($.npu.user + " felhasználó összes tárolt kurzusa törölve lesz ezen a képzésen. Valóban ezt szeretnéd?")) {
-								$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training], { });
-								$.npu.setUserData(null, $.npu.user, ["courses", "_legacy"], { });
+								$.npu.setUserData(null, null, ["courses", $.npu.training], { });
+								$.npu.setUserData(null, null, ["courses", "_legacy"], { });
+								$.npu.setUserData(null, null, "filterCourses", false);
 								$.npu.saveData();
 								loadCourses();
 								refreshScreen();
@@ -574,6 +579,16 @@ $.npu = {
 						});
 						pager.prepend(clearAll);
 					}
+					if($("#npu_filter_courses").size() == 0) {
+						var filterCell = $('<td id="npu_filter_courses" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_field">Csak a tárolt kurzusok megjelenítése</label></td>');
+						$("input", filterCell).change(function(e) {
+							$.npu.setUserData(null, null, "filterCourses", $(this).get(0).checked);
+							$.npu.saveData();
+							refreshScreen();
+						});
+						pager.prepend(filterCell);
+					}
+					$("#npu_filter_field").get(0).checked = filterEnabled;
 				}
 				
 				var innerTable = $("#Addsubject_course1_gridCourses_bodytable");
@@ -637,7 +652,7 @@ $.npu = {
 										alert("A tároláshoz elobb válaszd ki a tárolandó kurzusokat.");
 									}
 									else {
-										$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], selectedCourses);
+										$.npu.setUserData(null, null, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], selectedCourses);
 										$.npu.saveData();
 										loadCourses();
 										refreshScreen();
@@ -659,8 +674,8 @@ $.npu = {
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
 									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
-										$.npu.setUserData(null, $.npu.user, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], null);
-										$.npu.setUserData(null, $.npu.user, ["courses", "_legacy", subjectCode.trim().toUpperCase()], null);
+										$.npu.setUserData(null, null, ["courses", $.npu.training, subjectCode.trim().toUpperCase()], null);
+										$.npu.setUserData(null, null, ["courses", "_legacy", subjectCode.trim().toUpperCase()], null);
 										$.npu.saveData();
 										loadCourses();
 										refreshScreen();

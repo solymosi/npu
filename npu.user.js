@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
-// @description    Felturbózza a Neptun-odat
+// @description    FelturbÃ³zza a Neptun-odat
 // @version        1.48
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
@@ -169,8 +169,8 @@ var npu = {
 			
 			selectField.append('<option disabled="disabled" class="user_separator">&nbsp;</option>');
 
-			selectField.append('<option id="other_user" value="__OTHER__">Más felhasználó...</option>');
-			selectField.append('<option id="edit_list" value="__DELETE__">Tárolt kód törlése...</option>');
+			selectField.append('<option id="other_user" value="__OTHER__">MÃ¡s felhasznÃ¡lÃ³...</option>');
+			selectField.append('<option id="edit_list" value="__DELETE__">TÃ¡rolt kÃ³d tÃ¶rlÃ©se...</option>');
 			
 			$("td", selectField).css("position", "relative");
 			selectField.css("font-weight", "bold").css("font-family", "consolas, courier new, courier, monospace").css("font-size", "1.5em");
@@ -194,7 +194,7 @@ var npu = {
 					for(var i = 0; i < users.length; i++) {
 						defaultString += "   /   " + users[i];
 					}
-					itemToDelete = unsafeWindow.prompt("Írd be a törlendo neptun kódot. Az összes törléséhez írd be: MINDEGYIKET", defaultString);
+					itemToDelete = unsafeWindow.prompt("Ãrd be a tÃ¶rlendÅ‘ neptun kÃ³dot. Az Ã¶sszes tÃ¶rlÃ©sÃ©hez Ã­rd be: MINDEGYIKET", defaultString);
 					if(itemToDelete == "" || itemToDelete == null) {
 						return false;
 					}
@@ -208,7 +208,7 @@ var npu = {
 					}
 					
 					if(!deleted) {
-						if(confirm("A megadott neptun kód nincs benne a tárolt listában. Megpróbálod újra?")) {
+						if(confirm("A megadott neptun kÃ³d nincs benne a tÃ¡rolt listÃ¡ban. MegprÃ³bÃ¡lod Ãºjra?")) {
 							$("#user_sel").val("__DELETE__").trigger("change");
 						}
 						return false;
@@ -217,12 +217,12 @@ var npu = {
 					npu.saveData();
 					
 					if(itemToDelete.toUpperCase() == "MINDEGYIKET") {
-						alert("Az összes tárolt neptun kód törölve lett a bejelentkezési listából.");
+						alert("Az Ã¶sszes tÃ¡rolt neptun kÃ³d tÃ¶rÃ¶lve lett a bejelentkezÃ©si listÃ¡bÃ³l.");
 						window.location.reload();
 						return false;
 					}
 					
-					alert("A(z) " + itemToDelete + " felhasználó törölve lett a bejelentkezési listából.");
+					alert("A(z) " + itemToDelete + " felhasznÃ¡lÃ³ tÃ¶rÃ¶lve lett a bejelentkezÃ©si listÃ¡bÃ³l.");
 					window.location.reload();
 					return false;
 				}
@@ -247,7 +247,7 @@ var npu = {
 					}
 					
 					if(foundID == -1) {
-						if(confirm("Szeretnéd menteni a beírt adatokat, hogy késobb egy kattintással be tudj lépni errol a számítógéprol?")) {
+						if(confirm("SzeretnÃ©d menteni a beÃ­rt adatokat, hogy kÃ©sÅ‘bb egy kattintÃ¡ssal be tudj lÃ©pni errÅ‘l a szÃ¡mÃ­tÃ³gÃ©prÅ‘l?")) {
 							npu.setChild(npu.data, ["users", npu.domain, $("#user").val().toUpperCase(), "password"], npu.encodeBase64($("#pwd").val()));
 							npu.saveData();
 						}
@@ -264,7 +264,7 @@ var npu = {
 				}
 				
 				if($("#pwd").val() != npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"]))) {
-					if(confirm("Szeretnéd megváltoztatni a(z) " + $("#user").val().toUpperCase() + " felhasználó tárolt jelszavát a most beírt jelszóra?")) {
+					if(confirm("SzeretnÃ©d megvÃ¡ltoztatni a(z) " + $("#user").val().toUpperCase() + " felhasznÃ¡lÃ³ tÃ¡rolt jelszavÃ¡t a most beÃ­rt jelszÃ³ra?")) {
 						npu.setChild(npu.data, ["users", npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"], npu.encodeBase64($("#pwd").val()));
 						npu.saveData();
 					}
@@ -293,7 +293,7 @@ var npu = {
 			npu.loginButton = submit.attr("value");
 			submit.attr("value", npu.loginButton + " (" + npu.loginCount + ")");
 			
-			$(".login_button_td").append('<div id="abortLogin" style="text-align: center; margin: 23px 0 0 128px"><a href="#" class="abort_login">Megszakít</a></div>');
+			$(".login_button_td").append('<div id="abortLogin" style="text-align: center; margin: 23px 0 0 128px"><a href="#" class="abort_login">MegszakÃ­t</a></div>');
 			$(".login_button_td a.abort_login").click(function(e) {
 				e.preventDefault();
 				npu.abortLogin();
@@ -377,9 +377,9 @@ var npu = {
 			$("#mb1_Targyak").attr("targeturl", "main.aspx?ctrl=0303&ismenuclick=true").attr("hoverid", "#mb1_Targyak_Targyfelvetel");
 			$("#mb1_Vizsgak").attr("targeturl", "main.aspx?ctrl=0401&ismenuclick=true").attr("hoverid", "#mb1_Vizsgak_Vizsgajelentkezes");
 			
-			var orarend = $('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_Orarend" targeturl="main.aspx?ctrl=0203&amp;ismenuclick=true">Órarend</li>');
+			var orarend = $('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_Orarend" targeturl="main.aspx?ctrl=0203&amp;ismenuclick=true">Ã“rarend</li>');
 			$("#mb1_Targyak").before(orarend);
-			$("#mb1_Tanulmanyok_Órarend").remove();
+			$("#mb1_Tanulmanyok_Ã“rarend").remove();
 			
 			if(!$("#upChooser_chooser_kollab").hasClass("KollabChooserSelected")) {
 				$('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_MeetStreet" targeturl="javascript:__doPostBack(\'upChooser$btnKollab\',\'\')">Meet Street</li>').appendTo("#mb1");
@@ -537,7 +537,7 @@ var npu = {
 			var color = $("#lbtnQuit").css("color");
 			$('<style type="text/css"> #npu_loading { position: fixed; width: 150px; margin-left: -75px; left: 50%; top: 0; background: ' + color + '; color: white; font-size: 1em; font-size: 1.2em; font-weight: bold; padding: 8px 10px; text-align: center; z-index: 1000; display: none; -webkit-border-bottom-right-radius: 5px; -webkit-border-bottom-left-radius: 5px; -moz-border-radius-bottomright: 5px; -moz-border-radius-bottomleft: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; -webkit-box-shadow: 0px 0px 3px 0px black; -moz-box-shadow: 0px 0px 3px 0px black; box-shadow: 0px 0px 3px 0px black; } </style>').appendTo("head");
 			$("#progress, #customtextprogress").css("visibility", "hidden");
-			$('<div id="npu_loading">Kis türelmet...</div>').appendTo("body");
+			$('<div id="npu_loading">Kis tÃ¼relmet...</div>').appendTo("body");
 			
 			npu.runEval(function() {
 				var manager = Sys.WebForms.PageRequestManager.getInstance();
@@ -687,10 +687,10 @@ var npu = {
 					
 					var pager = $("#h_addsubjects_gridSubjects_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
 					if($("#npu_clear_courses").size() == 0) {
-						var clearAll = $('<td id="npu_clear_courses"><a style="color: #C00; line-height: 17px; margin-right: 30px" href="">Tárolt kurzusok törlése</a></td>');
+						var clearAll = $('<td id="npu_clear_courses"><a style="color: #C00; line-height: 17px; margin-right: 30px" href="">TÃ¡rolt kurzusok tÃ¶rlÃ©se</a></td>');
 						$("a", clearAll).click(function(e) {
 							e.preventDefault();
-							if(confirm(npu.user + " felhasználó összes tárolt kurzusa törölve lesz ezen a képzésen. Valóban ezt szeretnéd?")) {
+							if(confirm(npu.user + " felhasznÃ¡lÃ³ Ã¶sszes tÃ¡rolt kurzusa tÃ¶rÃ¶lve lesz ezen a kÃ©pzÃ©sen. ValÃ³ban ezt szeretnÃ©d?")) {
 								npu.setUserData(null, null, ["courses", npu.training], { });
 								npu.setUserData(null, null, ["courses", "_legacy"], { });
 								npu.setUserData(null, null, "filterCourses", false);
@@ -702,7 +702,7 @@ var npu = {
 						pager.prepend(clearAll);
 					}
 					if($("#npu_filter_courses").size() == 0) {
-						var filterCell = $('<td id="npu_filter_courses" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_field">Csak a tárolt kurzusok megjelenítése</label></td>');
+						var filterCell = $('<td id="npu_filter_courses" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_field">Csak a tÃ¡rolt kurzusok megjelenÃ­tÃ©se</label></td>');
 						$("input", filterCell).change(function(e) {
 							npu.setUserData(null, null, "filterCourses", $(this).get(0).checked);
 							npu.saveData();
@@ -718,7 +718,7 @@ var npu = {
 					innerTable.attr("data-inner-choices-displayed", "1");
 					if($("th.headerWithCheckbox", innerTable).size() == 0) {
 						var objName = $("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid");
-						$('<th id="head_chk" class="headerWithCheckbox headerDisabled" colname="chk" title="Válasszon ki legalább egyet!" align="center"><label class="hiddenforlabel" for="Addsubject_course1_gridCourses_bodytable_chk_chkall">Összes kijelölése</label><span></span><input aria-disabled="false" role="checkbox" id="Addsubject_course1_gridCourses_bodytable_chk_chkall" onclick="' + objName + '.AllCheckBox(this.checked,\'chk\',true,1,this)" type="checkbox"><span></span></th>').appendTo("#Addsubject_course1_gridCourses_headerrow");
+						$('<th id="head_chk" class="headerWithCheckbox headerDisabled" colname="chk" title="VÃ¡lasszon ki legalÃ¡bb egyet!" align="center"><label class="hiddenforlabel" for="Addsubject_course1_gridCourses_bodytable_chk_chkall">Ã–sszes kijelÃ¶lÃ©se</label><span></span><input aria-disabled="false" role="checkbox" id="Addsubject_course1_gridCourses_bodytable_chk_chkall" onclick="' + objName + '.AllCheckBox(this.checked,\'chk\',true,1,this)" type="checkbox"><span></span></th>').appendTo("#Addsubject_course1_gridCourses_headerrow");
 						$("tbody tr", innerTable).each(function() {
 							$('<td t="chks" n="chk" class="aligncenter"><label class="hiddenforlabel" for="chk' + $(this).attr("id").substring(4) + '">' + $("td:nth-child(2)", this).text().trim() + '</label><input id="chk' + $(this).attr("id").substring(4) + '" aria-disabled="false" role="checkbox" onclick="' + objName + '.Cv(this,\'1\');" type="checkbox"></td>').appendTo(this);
 						});
@@ -758,7 +758,7 @@ var npu = {
 									$('<table class="grid_functiontable_bottom" align="right"><tbody><tr><td class="functionitem" nowrap=""></td></tr></tbody></table>').appendTo("#Addsubject_course1_gridCourses_tablebottom .grid_bottomfunctionpanel");
 									footer = $(footer.selector);
 								}
-								var buttonBarExtensions = $('<span class="npu_course_choice_actions" style="margin: 0 20px"><span class="FunctionCommandTitle">Tárolt kurzusok:</span><input type="button" value="Tárolás" class="gridbutton npu_course_choice_save"><input type="button" value="Betöltés" class="gridbutton npu_course_choice_load" style="display: none">' + (canSave ? '<input type="button" value="Betöltés és Mentés" class="gridbutton npu_course_choice_apply" style="display: none">' : "") + '<input type="button" value="Törlés" class="gridbutton npu_course_choice_delete" style="display: none"></span>');
+								var buttonBarExtensions = $('<span class="npu_course_choice_actions" style="margin: 0 20px"><span class="FunctionCommandTitle">TÃ¡rolt kurzusok:</span><input type="button" value="TÃ¡rolÃ¡s" class="gridbutton npu_course_choice_save"><input type="button" value="BetÃ¶ltÃ©s" class="gridbutton npu_course_choice_load" style="display: none">' + (canSave ? '<input type="button" value="BetÃ¶ltÃ©s Ã©s MentÃ©s" class="gridbutton npu_course_choice_apply" style="display: none">' : "") + '<input type="button" value="TÃ¶rlÃ©s" class="gridbutton npu_course_choice_delete" style="display: none"></span>');
 								header.append(buttonBarExtensions);
 								footer.prepend(buttonBarExtensions.clone());
 								$(".npu_course_choice_actions .npu_course_choice_save").click(function() {
@@ -771,7 +771,7 @@ var npu = {
 										}
 									});
 									if(selectedCourses.length == 0) {
-										alert("A tároláshoz elobb válaszd ki a tárolandó kurzusokat.");
+										alert("A tÃ¡rolÃ¡shoz elÅ‘bb vÃ¡laszd ki a tÃ¡rolandÃ³ kurzusokat.");
 									}
 									else {
 										npu.setUserData(null, null, ["courses", npu.training, subjectCode.trim().toUpperCase()], selectedCourses);
@@ -797,7 +797,7 @@ var npu = {
 									try { obj.SelectFunction("update"); } catch(ex) { }
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
-									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
+									if(confirm("ValÃ³ban tÃ¶rÃ¶lni szeretnÃ©d a tÃ¡rolt kurzusokat?")) {
 										npu.setUserData(null, null, ["courses", npu.training, subjectCode.trim().toUpperCase()], null);
 										npu.setUserData(null, null, ["courses", "_legacy", subjectCode.trim().toUpperCase()], null);
 										npu.saveData();

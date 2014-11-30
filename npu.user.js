@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.47
+// @version        1.48
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -376,10 +376,19 @@ var npu = {
 			$("#mb1_Tanulmanyok").attr("targeturl", "main.aspx?ctrl=0206&ismenuclick=true").attr("hoverid", "#mb1_Tanulmanyok_Leckekonyv");
 			$("#mb1_Targyak").attr("targeturl", "main.aspx?ctrl=0303&ismenuclick=true").attr("hoverid", "#mb1_Targyak_Targyfelvetel");
 			$("#mb1_Vizsgak").attr("targeturl", "main.aspx?ctrl=0401&ismenuclick=true").attr("hoverid", "#mb1_Vizsgak_Vizsgajelentkezes");
+			
 			var orarend = $('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_Orarend" targeturl="main.aspx?ctrl=0203&amp;ismenuclick=true">Órarend</li>');
 			$("#mb1_Targyak").before(orarend);
 			$("#mb1_Tanulmanyok_Órarend").remove();
-			$("#Menu_neptun_neptun li[targeturl]").css("position", "relative").each(function() {
+			
+			if(!$("#upChooser_chooser_kollab").hasClass("KollabChooserSelected")) {
+				$('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_MeetStreet" targeturl="javascript:__doPostBack(\'upChooser$btnKollab\',\'\')">Meet Street</li>').appendTo("#mb1");
+			}
+			if(!$("#upChooser_chooser_neptun").hasClass("NeptunChooserSelected")) {
+				$('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_TanulmanyiRendszer" targeturl="javascript:__doPostBack(\'upChooser$btnNeptun\',\'\')">Neptun</li>').appendTo("#mb1");
+			}
+			
+			$("#mb1 li[targeturl]").css("position", "relative").each(function() {
 				$(this).addClass("has-target");
 				var a = $('<a href="' + $(this).attr("targeturl") + '" style="display: block; position: absolute; left: 0; top: 0; width: 100%; height: 100%"></a>');
 				a.click(function(e) {
@@ -717,7 +726,7 @@ var npu = {
 					$("tbody tr", innerTable).each(function() {
 						$("input[type=checkbox]", this).removeAttr("disabled");
 					});
-					var subjectText = $("#upFunction_h_addsubjects_upModal_upmodal_subjectdata_ctl02_Subject_data1_upParent_tab_ctl00_upAddSubjects .subtitle_table h2").html();
+					var subjectText = $("#Subject_data_for_schedule_ctl00 h2").html();
 					if(subjectText != null) {
 						var subjectCode = subjectText.match(/^.*?\((.*)\)<br>.*$/)[1];
 						if(typeof subjectCode != "undefined") {

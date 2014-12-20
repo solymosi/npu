@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.48
+// @version        1.49
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -728,7 +728,7 @@ var npu = {
 					});
 					var subjectText = $("#Subject_data_for_schedule_ctl00 h2").html();
 					if(subjectText != null) {
-						var subjectCode = subjectText.match(/^.*?\((.*)\)<br>.*$/)[1];
+						var subjectCode = subjectText.match(/^.*?\(([^()]*)\)<br>.*$/)[1];
 						if(typeof subjectCode != "undefined") {
 							var choices = courses[subjectCode.trim().toUpperCase()];
 							var hasChoices = (typeof choices != "undefined" && choices != null && choices.length > 0);

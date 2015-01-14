@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.49
+// @version        1.49.1
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -22,6 +22,10 @@ var npu = {
 	
 		/* Run features */
 		init: function() {
+			if(!this.isNeptunPage()) {
+				return;
+			}
+			
 			this.initParameters();
 			this.initStorage();
 			
@@ -886,7 +890,12 @@ var npu = {
 		},
 	
 	/* == MISC == */
-	
+		
+		/* Verify that we are indeed on a Neptun page */
+		isNeptunPage: function() {
+			return document.title.indexOf("Neptun.Net") != -1;
+		},
+		
 		/* Initialize and cache parameters that do not change dynamically */
 		initParameters: function() {
 			npu.user = npu.getUser();

@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.49.1
+// @version        1.49.2
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -376,7 +376,29 @@ var npu = {
 		/* Fix opening in new tab and add shortcuts */
 		fixMenu: function() {
 			var color = $("#lbtnQuit").css("color");
-			$('<style type="text/css">ul.menubar, .top_menu_wrapper { cursor: default !important } #mb1 li.menu-parent { color: #525659 !important } #mb1 li.menu-parent.has-target { color: ' + color + ' !important } #mb1 li.menu-parent.has-target:hover { color: #000 !important }</style>').appendTo("head");
+			
+			$(
+				'<style type="text/css"> ' +
+					'ul.menubar, ' +
+					'.top_menu_wrapper ' +
+					'{ ' +
+						'cursor: default !important; ' +
+					'} ' +
+					'#mb1 li.menu-parent ' +
+					'{ ' +
+						'color: #525659 !important; ' +
+					'} ' +
+					'#mb1 li.menu-parent.has-target ' +
+					'{ ' +
+						'color: ' + color + ' !important; ' +
+					'} ' +
+					'#mb1 li.menu-parent.has-target:hover ' +
+					'{ ' +
+						'color: #000 !important; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
+			
 			$("#mb1_Tanulmanyok").attr("targeturl", "main.aspx?ctrl=0206&ismenuclick=true").attr("hoverid", "#mb1_Tanulmanyok_Leckekonyv");
 			$("#mb1_Targyak").attr("targeturl", "main.aspx?ctrl=0303&ismenuclick=true").attr("hoverid", "#mb1_Targyak_Targyfelvetel");
 			$("#mb1_Vizsgak").attr("targeturl", "main.aspx?ctrl=0401&ismenuclick=true").attr("hoverid", "#mb1_Vizsgak_Vizsgajelentkezes");
@@ -410,7 +432,34 @@ var npu = {
 		
 		/* Replace term drop-down list with buttons */
 		fixTermSelect: function() {
-			$('<style type="text/css"> .termSelect { list-style: none; padding: 0; } .termSelect li { display: inline-block; *display: inline; vertical-align: middle; margin: 0 15px 0 0; line-height: 250%; } .termSelect li a { padding: 5px; } .termSelect li a.button { color: #FFF; box-shadow: none; text-decoration: none; cursor: default; } </style>').appendTo("head");
+			$(
+				'<style type="text/css"> ' +
+					'.termSelect ' +
+					'{ ' +
+						'list-style: none; ' +
+						'padding: 0; ' +
+					'} ' +
+					'.termSelect li ' +
+					'{ ' +
+						'display: inline-block; ' +
+						'*display: inline; ' +
+						'vertical-align: middle; ' +
+						'margin: 0 15px 0 0; ' +
+						'line-height: 250%; ' +
+					'} ' +
+					'.termSelect li a ' +
+					'{ ' +
+						'padding: 5px; ' +
+					'} ' +
+					'.termSelect li a.button ' +
+					'{ ' +
+						'color: #FFF; ' +
+						'box-shadow: none; ' +
+						'text-decoration: none; ' +
+						'cursor: default; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
 			
 			var findTermSelect = function() {
 				return $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal, #cmbTerms_cmb").first();
@@ -539,7 +588,36 @@ var npu = {
 		/* Use custom loading indicator for async requests */
 		initProgressIndicator: function() {
 			var color = $("#lbtnQuit").css("color");
-			$('<style type="text/css"> #npu_loading { position: fixed; width: 150px; margin-left: -75px; left: 50%; top: 0; background: ' + color + '; color: white; font-size: 1em; font-size: 1.2em; font-weight: bold; padding: 8px 10px; text-align: center; z-index: 1000; display: none; -webkit-border-bottom-right-radius: 5px; -webkit-border-bottom-left-radius: 5px; -moz-border-radius-bottomright: 5px; -moz-border-radius-bottomleft: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; -webkit-box-shadow: 0px 0px 3px 0px black; -moz-box-shadow: 0px 0px 3px 0px black; box-shadow: 0px 0px 3px 0px black; } </style>').appendTo("head");
+			$(
+				'<style type="text/css"> ' +
+					'#npu_loading ' +
+					'{ ' +
+						'position: fixed; ' +
+						'width: 150px; ' +
+						'margin-left: -75px; ' +
+						'left: 50%; ' +
+						'top: 0; ' +
+						'background: ' + color + '; ' +
+						'color: white; ' +
+						'font-size: 1.2em; ' +
+						'font-weight: bold; ' +
+						'padding: 8px 10px; ' +
+						'text-align: center; ' +
+						'z-index: 1000; ' +
+						'display: none; ' +
+						'-webkit-border-bottom-right-radius: 5px; ' +
+						'-webkit-border-bottom-left-radius: 5px; ' +
+						'-moz-border-radius-bottomright: 5px; ' +
+						'-moz-border-radius-bottomleft: 5px; ' +
+						'border-bottom-right-radius: 5px; ' +
+						'border-bottom-left-radius: 5px; ' +
+						'-webkit-box-shadow: 0px 0px 3px 0px black; ' +
+						'-moz-box-shadow: 0px 0px 3px 0px black; ' +
+						'box-shadow: 0px 0px 3px 0px black; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
+			
 			$("#progress, #customtextprogress").css("visibility", "hidden");
 			$('<div id="npu_loading">Kis türelmet...</div>').appendTo("body");
 			
@@ -582,23 +660,84 @@ var npu = {
 	
 		/* Enhance mark list style */
 		fixMarkList: function() {
-			$('<style type="text/css"> #h_markbook_gridIndexEntry_bodytable tr.SubjectCompletedRow td { background-color: #D5EFBA !important; } </style>').appendTo("head");
+			$(
+				'<style type="text/css"> ' +
+					'#h_markbook_gridIndexEntry_bodytable tr.SubjectCompletedRow td ' +
+					'{ ' +
+						'background-color: #D5EFBA !important; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
 		},
 
 	/* == PROGRESS LIST == */
 		
 		/* Enhance progress list style */
 		fixProgressList: function() {
-			$('<style type="text/css"> #h_advance_gridSubjects_bodytable tr:not(.gridrow_blue):not(.gridrow_green) td, #h_advance_NonCurrTemp_bodytable tr:not(.gridrow_blue):not(.gridrow_green) td { background-color: #F8EFB1 !important; font-weight: bold; color: #525659; } #h_advance_gridSubjects_bodytable tr.gridrow_green td, #h_advance_NonCurrTemp_bodytable tr.gridrow_green td { background-color: #D5EFBA !important; font-weight: bold; color: #525659; } #h_advance_gridSubjects_bodytable tr.gridrow_blue td, #h_advance_NonCurrTemp_bodytable tr.gridrow_blue td { background-color: none !important; color: #525659; } </style>').appendTo("head");
+			$(
+				'<style type="text/css"> ' +
+					'#h_advance_gridSubjects_bodytable tr:not(.gridrow_blue):not(.gridrow_green) td, ' +
+					'#h_advance_NonCurrTemp_bodytable tr:not(.gridrow_blue):not(.gridrow_green) td ' +
+					'{ ' +
+						'background-color: #F8EFB1 !important; ' +
+						'font-weight: bold; ' +
+						'color: #525659; ' +
+					'} ' +
+					'#h_advance_gridSubjects_bodytable tr.gridrow_green td, ' +
+					'#h_advance_NonCurrTemp_bodytable tr.gridrow_green td ' +
+					'{ ' +
+						'background-color: #D5EFBA !important; ' +
+						'font-weight: bold; ' +
+						'color: #525659; ' +
+					'} ' +
+					'#h_advance_gridSubjects_bodytable tr.gridrow_blue td, ' +
+					'#h_advance_NonCurrTemp_bodytable tr.gridrow_blue td ' +
+					'{ ' +
+						'background-color: none !important; ' +
+						'color: #525659; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
 		},
 		
 	/* == COURSE LIST == */
 		
 		/* Enhance course list style and functionality */
 		fixCourseList: function() {
-			$('<style type="text/css"> #h_addsubjects_gridSubjects_bodytable tr.Row1_Bold td, #Addsubject_course1_gridCourses_bodytable tr.Row1_sel td, #Addsubject_course1_gridCourses_bodytable tr.Row1_Bold_sel td, #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow td { background-color: #F8EFB1 !important; font-weight: bold; color: #525659; } #h_addsubjects_gridSubjects_bodytable tr, #Addsubject_course1_gridCourses_bodytable tr { cursor: pointer; } #h_addsubjects_gridSubjects_bodytable tr.npu_completed td, #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow[data-completed] td { background-color: #D5EFBA !important; font-weight: bold; color: #525659; } #h_addsubjects_gridSubjects_bodytable tr.context_selectedrow { border: 0 none !important; border-bottom: 1px solid #D3D3D3 !important; } </style>').appendTo("head");
+			$(
+				'<style type="text/css"> ' +
+					'#h_addsubjects_gridSubjects_bodytable tr.Row1_Bold td, ' +
+					'#Addsubject_course1_gridCourses_bodytable tr.Row1_sel td, ' +
+					'#Addsubject_course1_gridCourses_grid_body_div tr.Row1_sel td, ' +
+					'#Addsubject_course1_gridCourses_bodytable tr.Row1_Bold_sel td, ' +
+					'#Addsubject_course1_gridCourses_grid_body_div tr.Row1_Bold_sel td, ' +
+					'#h_addsubjects_gridSubjects_bodytable tr.context_selectedrow td ' +
+					'{ ' +
+						'background-color: #F8EFB1 !important; ' +
+						'font-weight: bold; color: #525659; ' +
+					'} ' +
+					'#h_addsubjects_gridSubjects_bodytable tr, ' +
+					'#Addsubject_course1_gridCourses_bodytable tr, ' +
+					'#Addsubject_course1_gridCourses_grid_body_div tr ' +
+					'{ ' +
+						'cursor: pointer; ' +
+					'} ' +
+					'#h_addsubjects_gridSubjects_bodytable tr.npu_completed td, ' +
+					'#h_addsubjects_gridSubjects_bodytable tr.context_selectedrow[data-completed] td ' +
+					'{ ' +
+						'background-color: #D5EFBA !important; ' +
+						'font-weight: bold; ' +
+						'color: #525659; ' +
+					'} ' +
+					'#h_addsubjects_gridSubjects_bodytable tr.context_selectedrow ' +
+					'{ ' +
+						'border: 0 none !important; ' +
+						'border-bottom: 1px solid #D3D3D3 !important; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
 			
-			$("body").on("click", "#Addsubject_course1_gridCourses_bodytable tbody td", function(e) {
+			$("body").on("click", "#Addsubject_course1_gridCourses_bodytable tbody td, #Addsubject_course1_gridCourses_grid_body_div tbody td", function(e) {
 				if($(e.target).closest("input[type=checkbox]").size() == 0 && $(e.target).closest("td[onclick]").size() == 0) {
 					var checkbox = $("input[type=checkbox]", $(this).closest("tr")).get(0);
 					checkbox.checked = !checkbox.checked;
@@ -611,7 +750,7 @@ var npu = {
 			
 			$("body").on("click", "#h_addsubjects_gridSubjects_bodytable tbody td", function(e) {
 				if($(e.target).closest("td[onclick], span.link").size() == 0 && $(e.target).closest("td.contextcell_sel, td.contextcell").size() == 0) {
-					npu.runEval($("td[onmousemove] span.link", $(this).closest("tr")).attr("onclick"));
+					npu.runEval($("td span.link", $(this).closest("tr")).attr("onclick"));
 					e.preventDefault();
 					return false;
 				}
@@ -648,14 +787,26 @@ var npu = {
 				}, 250);
 			});
 			
-			$("body").on("change", "#upFilter_chkFilterCourses", function() {
+			var updateTable = function() {
 				$("#upFunction_h_addsubjects_upGrid").html("");
-			});
+			};
+			
+			$("body").on("change", "#upFilter_chkFilterCourses", updateTable);
+			$("body").on("change", "#upFilter_rbtnSubjectType input[type=radio]", updateTable);
 		},
 		
 		/* Initialize course choice storage and mark subject and course lines with stored course choices */
 		initCourseStore: function() {
-			$('<style type="text/css"> #h_addsubjects_gridSubjects_bodytable tr td.npu_choice_mark, #Addsubject_course1_gridCourses_bodytable  tr td.npu_choice_mark { background: #C00 !important } </style>').appendTo("head");
+			$(
+				'<style type="text/css"> ' +
+					'#h_addsubjects_gridSubjects_bodytable tr td.npu_choice_mark, ' +
+					'#Addsubject_course1_gridCourses_bodytable tr td.npu_choice_mark, ' +
+					'#Addsubject_course1_gridCourses_grid_body_div tr td.npu_choice_mark ' +
+					'{ ' +
+						'background: #C00 !important; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
 			
 			var loadCourses = function() {
 				courses = { };
@@ -666,6 +817,7 @@ var npu = {
 			var refreshScreen = function() {
 				$("#h_addsubjects_gridSubjects_bodytable").attr("data-choices-displayed", "0");
 				$("#Addsubject_course1_gridCourses_bodytable").attr("data-inner-choices-displayed", "0");
+				$("#Addsubject_course1_gridCourses_grid_body_div").attr("data-inner-choices-displayed", "0");
 			};
 			
 			var courses = null;
@@ -717,7 +869,7 @@ var npu = {
 					$("#npu_filter_field").get(0).checked = filterEnabled;
 				}
 				
-				var innerTable = $("#Addsubject_course1_gridCourses_bodytable");
+				var innerTable = $("#Addsubject_course1_gridCourses_bodytable:visible, #Addsubject_course1_gridCourses_grid_body_div:visible").first();
 				if(innerTable.size() > 0 && innerTable.attr("data-inner-choices-displayed") != "1") {
 					innerTable.attr("data-inner-choices-displayed", "1");
 					if($("th.headerWithCheckbox", innerTable).size() == 0) {
@@ -730,9 +882,21 @@ var npu = {
 					$("tbody tr", innerTable).each(function() {
 						$("input[type=checkbox]", this).removeAttr("disabled");
 					});
-					var subjectText = $("#Subject_data_for_schedule_ctl00 h2").html();
+					var subjectText = $("#Subject_data_for_schedule_ctl00:visible > div > div > h2").html();
 					if(subjectText != null) {
-						var subjectCode = subjectText.match(/^.*?\(([^()]*)\)<br>.*$/)[1];
+						var part = subjectText.split("<br>")[0];
+						if(part.charAt(part.length - 1) == ')') {
+							var depth = 0;
+							for(var i = part.length - 2; i >= 0; i--) {
+								var c = part.charAt(i);
+								if(depth == 0 && c == '(') {
+									var subjectCode = part.substring(i + 1, part.length - 1);
+									break;
+								}
+								depth = c == ')' ? depth + 1 : depth;
+								depth = c == '(' && depth > 0 ? depth - 1 : depth;
+							}
+						}
 						if(typeof subjectCode != "undefined") {
 							var choices = courses[subjectCode.trim().toUpperCase()];
 							var hasChoices = (typeof choices != "undefined" && choices != null && choices.length > 0);

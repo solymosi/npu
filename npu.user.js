@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.49.2
+// @version        1.49.3
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw6.nnet.sze.hu/hallgato/*
@@ -83,7 +83,7 @@ var npu = {
 		/* Load all data from local storage */
 		loadData: function() {
 			try {
-				npu.data = JSON.parse(GM_getValue("data"));
+				npu.data = JSON.parse(GM_getValue("data")) || {}; 
 			}
 			catch(e) { }
 			npu.upgradeSchema();

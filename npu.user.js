@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.49.4
+// @version        1.49.5
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -422,8 +422,7 @@ var npu = {
 				var a = $('<a href="' + $(this).attr("targeturl") + '" style="display: block; position: absolute; left: 0; top: 0; width: 100%; height: 100%"></a>');
 				a.click(function(e) {
 					$("ul.menu").css("visibility", "hidden");
-					document.location = $(this).attr("href");
-					e.preventDefault();
+					e.stopPropagation();
 				});
 				var hoverid = $(this).attr("hoverid");
 				if(hoverid) {

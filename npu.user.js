@@ -2,10 +2,10 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.49.3
+// @version        1.49.4
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
-// @include        https://netw6.nnet.sze.hu/hallgato/*
+// @include        https://netw*.nnet.sze.hu/hallgato/*
 // @include        https://nappw.dfad.duf.hu/hallgato/*
 // @include        https://host.sdakft.hu/*
 // @include        https://neptun.ejf.hu/ejfhw/*
@@ -350,9 +350,12 @@ var npu = {
 		/* Reconfigure server full wait dialog parameters */
 		fixWaitDialog: function() {
 			unsafeWindow.maxtrynumber = 1e6;
-			unsafeWindow.starttimer = function() {
-				unsafeWindow.login_wait_timer = setInterval("docheck()", 5000);
-			}
+			/* Export the patched starttimer function into the security context of the page in order to avoid an "access denied" error on Firefox. Details: https://blog.mozilla.org/addons/2014/04/10/changes-to-unsafewindow-for-the-add-on-sdk */
+			var timerFunction = function() {
+				unsafeWindow.login_wait_timer = unsafeWindow.setInterval(unsafeWindow.docheck, 5000);
+			};
+			exportFunction(timerFunction, unsafeWindow, {defineAs: "npu_starttimer"});
+			unsafeWindow.starttimer = unsafeWindow.npu_starttimer;
 		},
 		
 	/* == MAIN == */

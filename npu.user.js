@@ -474,7 +474,7 @@ var npu = {
 				return $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal, #cmbTerms_cmb").first();
 			};
 			var clickExecuteButton = function() {
-				if(["0303", "h_addsubjects", "0401", "h_exams", "0402", "h_signedexams", "0503", "h_transactionlist"].indexOf(npu.getPage()) != -1) {
+				if(["0303", "h_addsubjects", "0401", "h_exams", "0503", "h_transactionlist"].indexOf(npu.getPage()) != -1) {
 					return;
 				}
 				npu.runEval(function() {
@@ -1029,10 +1029,17 @@ var npu = {
 
 			// If the student has requested to expand all subrows, disable it.
 			// We are overriding this behaviour later on.
-			if (unsafeWindow.A2 && unsafeWindow.A2.AllSubrowExpanded == "True") {
+			// A2 can become even A3 and A4 and I don't know what else...
+			if (unsafeWindow.A1 && unsafeWindow.A1.AllSubrowExpanded == "True") {
+				unsafeWindow.A1.ShowAllSubrows();
+			} else if (unsafeWindow.A2 && unsafeWindow.A2.AllSubrowExpanded == "True") {
 				unsafeWindow.A2.ShowAllSubrows();
-			} else if (unsafeWindow.A3 && unsafeWindow.A3.AllSubrowExpanded == "True") { // Apparently, A2 sometimes becomes A3.
+			} else if (unsafeWindow.A3 && unsafeWindow.A3.AllSubrowExpanded == "True") {
 				unsafeWindow.A3.ShowAllSubrows();
+			} else if (unsafeWindow.A4 && unsafeWindow.A4.AllSubrowExpanded == "True") {
+				unsafeWindow.A4.ShowAllSubrows();
+			} else if (unsafeWindow.A5 && unsafeWindow.A5.AllSubrowExpanded == "True") {
+				unsafeWindow.A5.ShowAllSubrows();
 			}
 			$.examSubrowsExpanded = false;
 
@@ -1113,9 +1120,9 @@ var npu = {
 
 						npu.colourExams();
 						npu.hideSuccessfulExams();
-					}, 250);
+					}, 1000);
 				}
-			}, 100);
+			}, 250);
 		},
 
 		colourExams: function() {

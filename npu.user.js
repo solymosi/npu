@@ -66,6 +66,11 @@ var npu = {
 					this.initExamAutoList();
 				}
 				
+				if(this.isPage("0402") || this.isPage("h_signedexams")) {
+					this.fixSignedExamList();
+					this.initSignedExamAutoList();
+				}
+
 				this.initStat();
 			}
 		},
@@ -372,7 +377,9 @@ var npu = {
 			var originalTitle = document.title;
 			window.setInterval(function() {
 				var pageTitle = $("#menucaption").text().toString();
-				document.title =  (pageTitle == "" ? "" : pageTitle + " - ") + originalTitle;
+				if (document.title == originalTitle) {
+					document.title = (pageTitle == "" ? "" : pageTitle + " - ") + originalTitle;
+				}
 			}, 1000);
 		},
 		
@@ -467,7 +474,7 @@ var npu = {
 				return $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal, #cmbTerms_cmb").first();
 			};
 			var clickExecuteButton = function() {
-				if(["0303", "h_addsubjects", "0401", "h_exams", "0503", "h_transactionlist"].indexOf(npu.getPage()) != -1) {
+				if(["0303", "h_addsubjects", "0401", "h_exams", "0402", "h_signedexams", "0503", "h_transactionlist"].indexOf(npu.getPage()) != -1) {
 					return;
 				}
 				npu.runEval(function() {
@@ -987,7 +994,29 @@ var npu = {
 	
 		/* Enhance exam list style and functionality */
 		fixExamList: function() {
-			$('<style type="text/css"> #h_exams_gridExamList_bodytable tr.gridrow_blue td { background: #F8EFB1 !important; font-weight: bold; color: #525659 !important; } #h_exams_gridExamList_bodytable tr { cursor: pointer; } </style>').appendTo("head");
+			$(
+				'<style type="text/css"> ' +
+					'#h_exams_gridExamList_bodytable tr.gridrow_blue td ' +
+					'{ ' +
+						'background: #F8EFB1 !important; ' +
+						'font-weight: bold; ' +
+						'color: #525659 !important; ' +
+					'} ' +
+					'#h_exams_gridExamList_bodytable tr.npu_completed td ' +
+					'{ ' +
+						'background-color: #D5EFBA !important; ' +
+					'} ' +
+					'#h_exams_gridExamList_bodytable tr.npu_failed td ' +
+					'{ ' +
+						'background-color: #F2A49F !important; ' +
+						'color: #3A3C3E !important; ' +
+					'} ' +
+					'#h_exams_gridExamList_bodytable tr ' +
+					'{ ' +
+						'cursor: pointer; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
 			$("body").on("click", "#h_exams_gridExamList_bodytable tbody td", function(e) {
 				if($(e.target).closest("td[onclick], td.contextcell_sel, td.contextcell").size() == 0) {
 					npu.runEval(function() {
@@ -997,6 +1026,36 @@ var npu = {
 					return false;
 				}
 			});
+
+			// If the student has requested to expand all subrows, disable it.
+			// We are overriding this behaviour later on.
+			if (unsafeWindow.A2 && unsafeWindow.A2.AllSubrowExpanded == "True") {
+				unsafeWindow.A2.ShowAllSubrows();
+			} else if (unsafeWindow.A3 && unsafeWindow.A3.AllSubrowExpanded == "True") { // Apparently, A2 sometimes becomes A3.
+				unsafeWindow.A3.ShowAllSubrows();
+			}
+			$.examSubrowsExpanded = false;
+
+			var refreshScreen = function() {
+				$("#upFilter_panFilter table.searchpanel").attr("data-listing", "0");
+				$.examListTerm = "0000/00/0";
+				$.examListSubject = "Neptun";
+			}
+
+			window.setInterval(function() {
+				var filterEnabled = npu.getUserData(null, null, "filterExams");
+				var pager = $("#h_exams_gridExamList_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
+				if($("#npu_filter_exams").size() == 0) {
+					var filterCell = $('<td id="npu_filter_exams" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_field">Sikeres vizsgák elrejtése</label></td>');
+					$("input", filterCell).change(function(e) {
+						npu.setUserData(null, null, "filterExams", $(this).get(0).checked);
+						npu.saveData();
+						refreshScreen();
+					});
+					pager.prepend(filterCell);
+				}
+				$("#npu_filter_field").get(0).checked = filterEnabled;
+			}, 500);
 		},
 		
 		/* Automatically list exams on page load and subject change */
@@ -1005,6 +1064,24 @@ var npu = {
 			$("body").on("change", "#upFilter_cmbSubjects", function() {
 				$.examListSubjectValue = $(this).val();
 			});
+
+			var changeAllSubrowVisibility = function(visible) {
+				$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function() {
+					var buttonImg = $(this).find("td.header_plus img").first();
+					buttonImg.attr("src",
+						buttonImg.attr("src").replace(
+							(visible ? "plus" : "minus"),
+							(visible ? "minus" : "plus")
+						)
+					);
+				});
+
+				$("#h_exams_gridExamList_bodytable tbody tr.subrow").each(function() {
+					$(this).attr("style", (visible ? "" : "display:none"));
+					$(this).attr("visibility", (visible ? "visible" : "hidden"));
+				});
+			}
+
 			window.setInterval(function() {
 				var panel = $("#upFilter_panFilter table.searchpanel");
 				if(panel.attr("data-listing") != "1" && ($.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value") || $.examListSubject != $.examListSubjectValue)) {
@@ -1014,10 +1091,145 @@ var npu = {
 					npu.runEval(function() {
 						$("#upFilter_expandedsearchbutton").click();
 					});
+
+					window.setTimeout(function() {
+						// Override the default "show-hide all subrows" action to prevent reloading the page.
+						$("#h_exams_gridExamList_bodytable thead tr#h_exams_gridExamList_headerrow th.header_plus").attr("onclick", "").bind("click", function(e) {
+							e.preventDefault();
+
+							if (!$.examSubrowsExpanded) {
+								$("img#imgcollapse_allsubrows").attr("src",
+									$("img#imgcollapse_allsubrows").attr("src").replace("plus", "minus")
+								);
+							} else {
+								$("img#imgcollapse_allsubrows").attr("src",
+									$("img#imgcollapse_allsubrows").attr("src").replace("minus", "plus")
+								);
+							}
+
+							$.examSubrowsExpanded = !$.examSubrowsExpanded;
+							changeAllSubrowVisibility($.examSubrowsExpanded);
+						});
+
+						npu.colourExams();
+						npu.hideSuccessfulExams();
+					}, 250);
 				}
 			}, 100);
 		},
-	
+
+		colourExams: function() {
+			$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function(idx, row) {
+				var lastMark = $("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().find("table.subtable tbody tr:last td:nth-child(4)").html();
+
+				if (npu.isPassingGrade(lastMark)) {
+					$(row).addClass("npu_completed").attr("data-completed", "1");
+				} else {
+					$(row).addClass("npu_failed").attr("data-failed", "1");
+				}
+
+				$("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().find("table.subtable tbody tr").each(function(idx, row) {
+					if (npu.isPassingGrade($(row).find("td:nth-child(4)").html())) {
+						$(row).addClass("npu_completed").attr("data-completed", "1");
+					} else {
+						$(row).addClass("npu_failed").attr("data-failed", "1");
+					}
+				});
+			});
+		},
+
+		hideSuccessfulExams: function() {
+			if(npu.getUserData(null, null, "filterExams") == "1") {
+				var hiddenRowCount = 0;
+
+				$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function(idx, row) {
+					var lastMark = $("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().find("table.subtable tbody tr:last td:nth-child(4)").html();
+
+					if (npu.isPassingGrade(lastMark)) {
+						$(row).remove();
+						$("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().remove();
+
+						++hiddenRowCount;
+					}
+				});
+
+				var rowCounter = $("#h_exams_gridExamList_tablebottom tbody tr td.grid_RowCount");
+				$(rowCounter).html(
+					$(rowCounter).html().replace(/\:(\d+)-(\d+)\/(\d+)/g, function(match, pFirst, pLast, pCount, offset, string) {
+						return pFirst + "-" + (pLast - hiddenRowCount) + "/" + (pCount - hiddenRowCount);
+					})
+				);
+			}
+		},
+
+	/* == SIGNED EXAM LIST == */
+
+		/* Enhance signed exam list style and functionality */
+		fixSignedExamList: function() {
+			$(
+				'<style type="text/css"> ' +
+					'#h_signedexams_gridExamList_bodytable tr.npu_missed td ' +
+					'{ ' +
+						'background: #F8EFB1 !important; ' +
+						'color: #525659 !important; ' +
+					'} ' +
+					'#h_signedexams_gridExamList_bodytable tr.npu_completed td ' +
+					'{ ' +
+						'background-color: #D5EFBA !important; ' +
+					'} ' +
+					'#h_signedexams_gridExamList_bodytable tr.npu_failed td ' +
+					'{ ' +
+						'background-color: #F2A49F !important; ' +
+						'color: #3A3C3E !important; ' +
+					'} ' +
+				'</style>'
+			).appendTo("head");
+			$("body").on("click", "#h_signedexams_gridExamList_bodytable tbody td", function(e) {
+				if($(e.target).closest("td[onclick], td.contextcell_sel, td.contextcell").size() == 0) {
+					npu.runEval(function() {
+						$("td.contextcell, td.contextcell_sel", $(this).closest("tr")).trigger("click");
+					});
+					e.preventDefault();
+					return false;
+				}
+			});
+		},
+
+		/* Automatically list signed exams on page load and semester change */
+		initSignedExamAutoList: function() {
+			$('<style type="text/css"> #upFilter_bodytable tr.nostyle { display: none } </style>').appendTo("head");
+			window.setInterval(function() {
+				var panel = $("#upFilter_panFilter table.searchpanel");
+				if(panel.attr("data-listing") != "1" && $.signedExamListTerm != $("#upFilter_cmbTerms option[selected]").attr("value")) {
+					panel.attr("data-listing", "1");
+					$.signedExamListTerm = $("#upFilter_cmbTerms option[selected]").attr("value");
+					panel.attr("data-listing", "1");
+					npu.runEval(function() {
+						$("#upFilter_expandedsearchbutton").click();
+					});
+
+					window.setTimeout(function() {
+						npu.colourSignedExams();
+					}, 250);
+				}
+			}, 100);
+		},
+
+		colourSignedExams: function() {
+			$("#h_signedexams_gridExamList_bodytable tbody tr").each(function(idx, row) {
+				// Normal attr() or prop() doesn't seem to work here.
+				if ($(row).find("td[n=Attended]").first()[0].attributes["checked"].value == "false") {
+					$(row).addClass("npu_missed").attr("data-missed", "1");
+				} else {
+					if (npu.isPassingGrade($(row).find("td:nth-child(14)").html())) {
+						$(row).addClass("npu_completed").attr("data-completed", "1");
+					} else {
+						$(row).addClass("npu_failed").attr("data-failed", "1");
+					}
+				}
+			});
+		},
+
 	/* == STATISTICS == */
 	
 		/* Statistics server URL */
@@ -1205,6 +1417,10 @@ var npu = {
 			dec = tmp_arr.join("");
 			return dec;
 		},
+
+		isPassingGrade: function(gradeStr) {
+			return gradeStr != "Elégtelen";
+		}
 };
 
 /*

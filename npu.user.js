@@ -1147,16 +1147,22 @@ var npu = {
 
 		hideSuccessfulExams: function() {
 			if(npu.getUserData(null, null, "filterExams") == "1") {
+				var subjectsToHide = [];
 				var hiddenRowCount = 0;
 
 				$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function(idx, row) {
 					var lastMark = $("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().find("table.subtable tbody tr:last td:nth-child(4)").html();
 
 					if (npu.isPassingGrade(lastMark)) {
+						++hiddenRowCount;
+
+						var subjectName = $(row).find("td:nth-child(2)").find("span").first().html();
+						if ($.inArray(subjectName, subjectsToHide) === -1) {
+							subjectsToHide[subjectsToHide.length] = subjectName
+						}
+
 						$(row).remove();
 						$("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().remove();
-
-						++hiddenRowCount;
 					}
 				});
 
@@ -1166,6 +1172,14 @@ var npu = {
 						return pFirst + "-" + (pLast - hiddenRowCount) + "/" + (pCount - hiddenRowCount);
 					})
 				);
+
+				$.each(subjectsToHide, function(idx, subjectName) {
+					$("#upFilter_cmbSubjects").children("option").each(function() {
+						if (~$(this).html().indexOf(subjectName)) {
+							$(this).remove();
+						}
+					});
+				});
 			}
 		},
 

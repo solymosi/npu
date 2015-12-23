@@ -750,8 +750,7 @@ var npu = {
 				if($(e.target).closest("input[type=checkbox]").size() == 0 && $(e.target).closest("td[onclick]").size() == 0) {
 					var checkbox = $("input[type=checkbox]", $(this).closest("tr")).get(0);
 					checkbox.checked = !checkbox.checked;
-					var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
-					try { obj.Cv($("input[type=checkbox]", $(this).closest("tr")).get(0), "1"); } catch(ex) { }
+					try { npu.getAJAXInstance().Cv($("input[type=checkbox]", $(this).closest("tr")).get(0), "1"); } catch(ex) { }
 					e.preventDefault();
 					return false;
 				}
@@ -882,7 +881,7 @@ var npu = {
 				if(innerTable.size() > 0 && innerTable.attr("data-inner-choices-displayed") != "1") {
 					innerTable.attr("data-inner-choices-displayed", "1");
 					if($("th.headerWithCheckbox", innerTable).size() == 0) {
-						var objName = $("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid");
+						var objName = npu.getAJAXInstanceID();
 						$('<th id="head_chk" class="headerWithCheckbox headerDisabled" colname="chk" title="Válasszon ki legalább egyet!" align="center"><label class="hiddenforlabel" for="Addsubject_course1_gridCourses_bodytable_chk_chkall">Összes kijelölése</label><span></span><input aria-disabled="false" role="checkbox" id="Addsubject_course1_gridCourses_bodytable_chk_chkall" onclick="' + objName + '.AllCheckBox(this.checked,\'chk\',true,1,this)" type="checkbox"><span></span></th>').appendTo("#Addsubject_course1_gridCourses_headerrow");
 						$("tbody tr", innerTable).each(function() {
 							$('<td t="chks" n="chk" class="aligncenter"><label class="hiddenforlabel" for="chk' + $(this).attr("id").substring(4) + '">' + $("td:nth-child(2)", this).text().trim() + '</label><input id="chk' + $(this).attr("id").substring(4) + '" aria-disabled="false" role="checkbox" onclick="' + objName + '.Cv(this,\'1\');" type="checkbox"></td>').appendTo(this);
@@ -962,16 +961,14 @@ var npu = {
 										var courseCode = $("td:nth-child(2)", this).text().trim().toUpperCase();
 										var checkbox = $("input[type=checkbox]", this).get(0);
 										checkbox.checked = $.inArray(courseCode, courses[subjectCode.trim().toUpperCase()]) != -1;
-										var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
-										try { obj.Cv(checkbox, "1"); } catch(ex) { }
+										try { npu.getAJAXInstance().Cv(checkbox, "1"); } catch(ex) { }
 									});
 								});
 								$(".npu_course_choice_actions .npu_course_choice_apply").click(function() {
 									npu.runEval(function() {
 										$(".npu_course_choice_actions .npu_course_choice_load").trigger("click");
 									});
-									var obj = unsafeWindow[$("#Addsubject_course1_gridCourses_gridmaindiv").attr("instanceid")];
-									try { obj.SelectFunction("update"); } catch(ex) { }
+									try { npu.getAJAXInstance().SelectFunction("update"); } catch(ex) { }
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
 									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
@@ -992,6 +989,18 @@ var npu = {
 		
 	/* == EXAM LIST == */
 	
+		/* Decide whether the given grade string constitutes passing the exam */
+		isPassingGrade: function(gradeStr) {
+			if (npu.getLanguage() == "hu") {
+				return gradeStr != "Elégtelen" && gradeStr != "Nem felelt meg" && gradeStr != "Nem jelent meg";
+			} else if (npu.getLanguage() == "en") {
+				return gradeStr != "Fail" && gradeStr != "Did not attend";
+			} else if (npu.getLanguage() == "de") {
+				// ???
+				return gradeStr != "Elégtelen" && gradeStr != "Nem felelt meg" && gradeStr != "Nem jelent meg";
+			}
+		},
+
 		/* Enhance exam list style and functionality */
 		fixExamList: function() {
 			$(
@@ -1029,17 +1038,8 @@ var npu = {
 
 			// If the student has requested to expand all subrows, disable it.
 			// We are overriding this behaviour later on.
-			// A2 can become even A3 and A4 and I don't know what else...
-			if (unsafeWindow.A1 && unsafeWindow.A1.AllSubrowExpanded == "True") {
-				unsafeWindow.A1.ShowAllSubrows();
-			} else if (unsafeWindow.A2 && unsafeWindow.A2.AllSubrowExpanded == "True") {
-				unsafeWindow.A2.ShowAllSubrows();
-			} else if (unsafeWindow.A3 && unsafeWindow.A3.AllSubrowExpanded == "True") {
-				unsafeWindow.A3.ShowAllSubrows();
-			} else if (unsafeWindow.A4 && unsafeWindow.A4.AllSubrowExpanded == "True") {
-				unsafeWindow.A4.ShowAllSubrows();
-			} else if (unsafeWindow.A5 && unsafeWindow.A5.AllSubrowExpanded == "True") {
-				unsafeWindow.A5.ShowAllSubrows();
+			if (npu.getAJAXInstance() && npu.getAJAXInstance().AllSubrowExpanded == "True") {
+				npu.getAJAXInstance().ShowAllSubrows();
 			}
 			$.examSubrowsExpanded = false;
 
@@ -1175,7 +1175,7 @@ var npu = {
 
 				$.each(subjectsToHide, function(idx, subjectName) {
 					$("#upFilter_cmbSubjects").children("option").each(function() {
-						if (~$(this).html().indexOf(subjectName)) {
+						if ($(this).html().indexOf(subjectName) !== -1) {
 							$(this).remove();
 						}
 					});
@@ -1239,7 +1239,7 @@ var npu = {
 		colourSignedExams: function() {
 			$("#h_signedexams_gridExamList_bodytable tbody tr").each(function(idx, row) {
 				// Normal attr() or prop() doesn't seem to work here.
-				if ($(row).find("td[n=Attended]").first()[0].attributes["checked"].value == "false") {
+				if ($(row).find("td[n=Attended]")[0].attributes["checked"].value == "false") {
 					$(row).addClass("npu_missed").attr("data-missed", "1");
 				} else {
 					if (npu.isPassingGrade($(row).find("td:nth-child(14)").html())) {
@@ -1339,6 +1339,41 @@ var npu = {
 			var result = (/ctrl=([a-zA-Z0-9_]+)/g).exec(window.location.href);
 			return result ? result[1] : null;
 		},
+
+		getLanguage: function() {
+			// QUESTION: There should be a more reliable way to do this...
+			var studentData = $("table.top_menu_wrapper tbody tr td li#mb1_Sajatadatok").first().html();
+
+			var startsWith = function(str, sub) {
+				return str.slice(0, sub.length) == sub;
+			}
+
+			if (startsWith(studentData, "Saját adatok")) {
+				return "hu";
+			} else if (startsWith(studentData, "My data")) {
+				return "en";
+			} else if (startsWith(studentData, "Persönliche Daten")) {
+				return "de";
+			}
+
+			return "??";
+		},
+
+		/* Get the current AJAX grid instance */
+		getAJAXInstance: function() {
+			if (npu.getAJAXInstanceID() !== false) {
+				return unsafeWindow[npu.getAJAXInstanceID()];
+			}
+			return false;
+		},
+
+		getAJAXInstanceID: function() {
+			var ajaxGrid = $("div[type=ajaxgrid]");
+			if (ajaxGrid.length !== 0) {
+				return ajaxGrid.first().attr("instanceid");
+			}
+			return false;
+		},
 		
 		/* Returns whether the specified ID is the current page */
 		isPage: function(ctrl) {
@@ -1437,10 +1472,6 @@ var npu = {
 			} while(i < data.length);
 			dec = tmp_arr.join("");
 			return dec;
-		},
-
-		isPassingGrade: function(gradeStr) {
-			return gradeStr != "Elégtelen";
 		}
 };
 

@@ -1127,6 +1127,10 @@ var npu = {
 
 		colourExams: function() {
 			$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function(idx, row) {
+				if ($(row).hasClass("gridrow_blue")) {
+					return;
+				}
+
 				var lastMark = $("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().find("table.subtable tbody tr:last td:nth-child(4)").html();
 
 				if (npu.isPassingGrade(lastMark)) {

@@ -1246,7 +1246,7 @@ var npu = {
 				if ($(row).find("td[n=Attended]")[0].attributes["checked"].value == "false") {
 					$(row).addClass("npu_missed").attr("data-missed", "1");
 				} else {
-					if (npu.isPassingGrade($(row).find("td:nth-child(14)").html())) {
+					if (npu.isPassingGrade($(row).find("td:nth-child(13)").html())) {
 						$(row).addClass("npu_completed").attr("data-completed", "1");
 					} else {
 						$(row).addClass("npu_failed").attr("data-failed", "1");

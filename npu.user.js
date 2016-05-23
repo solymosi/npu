@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.49.5
+// @version        1.49.6
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -14,6 +14,7 @@
 // @grant          GM_setValue
 // @grant          GM_info
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js
+// @connect        npu.herokuapp.com
 // ==/UserScript==
 
 var npu = {

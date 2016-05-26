@@ -991,14 +991,7 @@ var npu = {
 	
 		/* Decide whether the given grade string constitutes passing the exam */
 		isPassingGrade: function(gradeStr) {
-			if (npu.getLanguage() == "hu") {
-				return gradeStr != "Elégtelen" && gradeStr != "Nem felelt meg" && gradeStr != "Nem jelent meg";
-			} else if (npu.getLanguage() == "en") {
-				return gradeStr != "Fail" && gradeStr != "Did not attend";
-			} else if (npu.getLanguage() == "de") {
-				// ???
-				return gradeStr != "Elégtelen" && gradeStr != "Nem felelt meg" && gradeStr != "Nem jelent meg";
-			}
+			return ["Elégtelen", "Nem felelt meg", "Nem jelent meg", "Fail", "Did not attend"].indexOf(gradeStr) == -1;
 		},
 
 		/* Enhance exam list style and functionality */
@@ -1053,7 +1046,7 @@ var npu = {
 				var filterEnabled = npu.getUserData(null, null, "filterExams");
 				var pager = $("#h_exams_gridExamList_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
 				if($("#npu_filter_exams").size() == 0) {
-					var filterCell = $('<td id="npu_filter_exams" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_field">Sikeres vizsgák elrejtése</label></td>');
+					var filterCell = $('<td id="npu_filter_exams" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_field">Teljesített tárgyak elrejtése</label></td>');
 					$("input", filterCell).change(function(e) {
 						npu.setUserData(null, null, "filterExams", $(this).get(0).checked);
 						npu.saveData();
@@ -1342,25 +1335,6 @@ var npu = {
 		getPage: function() {
 			var result = (/ctrl=([a-zA-Z0-9_]+)/g).exec(window.location.href);
 			return result ? result[1] : null;
-		},
-
-		getLanguage: function() {
-			// QUESTION: There should be a more reliable way to do this...
-			var studentData = $("table.top_menu_wrapper tbody tr td li#mb1_Sajatadatok").first().html();
-
-			var startsWith = function(str, sub) {
-				return str.slice(0, sub.length) == sub;
-			}
-
-			if (startsWith(studentData, "Saját adatok")) {
-				return "hu";
-			} else if (startsWith(studentData, "My data")) {
-				return "en";
-			} else if (startsWith(studentData, "Persönliche Daten")) {
-				return "de";
-			}
-
-			return "??";
 		},
 
 		/* Get the current AJAX grid instance */

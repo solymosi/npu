@@ -1132,8 +1132,8 @@ var npu = {
 						});
 
 						if(npu.getUserData(null, null, "filterExams") == "1") {
-							successfulExams = npu.getSuccessfulExams();
-							npu.hideSuccessfulExams(successfulExams);
+							successfulExams = npu.getSuccessfulExamSubjects();
+							npu.removeExams(successfulExams);
 						}
 						
 						npu.initializeExamFiltering();
@@ -1240,7 +1240,7 @@ var npu = {
 			});
 		},
 
-		getSuccessfulExams: function() {
+		getSuccessfulExamSubjects: function() {
 			if(npu.getUserData(null, null, "filterExams") == "1") {
 				var subjectsToHide = [];
 
@@ -1259,11 +1259,11 @@ var npu = {
 			}
 		},
 		
-		hideSuccessfulExams: function(successfulExams) {
+		removeExams: function(subjects) {
 			if(npu.getUserData(null, null, "filterExams") == "1") {
 				$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function(idx, row) {
 					var subjectName = $(row).find("td:nth-child(2)").find("span").first().html();
-					if ($.inArray(subjectName, successfulExams) !== -1) {
+					if ($.inArray(subjectName, subjects) !== -1) {
 						$(row).remove();
 						$("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().remove();
 					}
@@ -1319,9 +1319,9 @@ var npu = {
 
 					window.setTimeout(function() {
 						npu.colourSignedExams();
-					}, 250);
+					}, 1000);
 				}
-			}, 100);
+			}, 500);
 		},
 
 		colourSignedExams: function() {

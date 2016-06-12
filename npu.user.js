@@ -69,7 +69,6 @@ var npu = {
 				
 				if(this.isPage("0402") || this.isPage("h_signedexams")) {
 					this.fixSignedExamList();
-					this.initSignedExamAutoList();
 				}
 
 				this.initStat();

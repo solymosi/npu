@@ -1147,7 +1147,6 @@ var npu = {
 						row.removeClass("npu_completed npu_failed npu_missed");
 						var attended = $("td[n=Attended]", row)[0].attributes["checked"].value == "true";
 						var passed = npu.isPassingGrade($("td:nth-child(13)", row).text().trim());
-						console.log(attended);
 						row.addClass(attended ? (passed ? "npu_completed" : "npu_failed") : "npu_missed");
 					});
 				}

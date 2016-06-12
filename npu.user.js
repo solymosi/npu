@@ -1014,12 +1014,17 @@ var npu = {
 						'background-color: #F2A49F !important; ' +
 						'color: #3A3C3E !important; ' +
 					'} ' +
+					'#h_exams_gridExamList_bodytable tr.npu_hidden ' +
+					'{ ' +
+						'display: none; ' +
+					'} ' +
 					'#h_exams_gridExamList_bodytable tr ' +
 					'{ ' +
 						'cursor: pointer; ' +
 					'} ' +
 				'</style>'
 			).appendTo("head");
+			
 			$("body").on("click", "#h_exams_gridExamList_bodytable tbody td", function(e) {
 				if($(e.target).closest("td[onclick], td.contextcell_sel, td.contextcell").size() == 0) {
 					npu.runEval(function() {
@@ -1029,28 +1034,48 @@ var npu = {
 					return false;
 				}
 			});
-
-			// If the student has requested to expand all subrows, disable it.
-			// We are overriding this behaviour later on.
-			if (npu.getAJAXInstance() && npu.getAJAXInstance().AllSubrowExpanded == "True") {
-				npu.getAJAXInstance().ShowAllSubrows();
-			}
-			$.examSubrowsExpanded = false;
-
+			
+			window.setInterval(function() {
+				var table = $("#h_exams_gridExamList_bodytable");
+				var filterEnabled = npu.getUserData(null, null, "filterExams");
+				
+				if(table.attr("data-processed") != "1") {
+					table.attr("data-processed", "1");
+					
+					$("tbody tr[id*=tr__]", table).each(function() {
+						var row = $(this);
+						var rowId = row.attr("id").replace(/^tr__/, "");
+						var subRow = $("#trs__" + rowId, row.closest("tbody"));
+						var markRows = $(".subtable > tbody > tr", subRow);
+						row.add(markRows).removeClass("npu_completed npu_failed").removeAttr("data-completed");
+						
+						markRows.each(function() {
+							var mark = $("td:nth-child(4)", this).text().trim();
+							if(npu.isPassingGrade(mark)) {
+								$(this).addClass("npu_completed");
+							}
+							else {
+								$(this).addClass("npu_failed");
+							}
+						});
+						
+						if(markRows.size() > 0) {
+							lastMark = markRows.last();
+							var mark = $("td:nth-child(4)", lastMark).text().trim();
+							if(npu.isPassingGrade(mark)) {
+								row.addClass("npu_completed").attr("data-completed", "1");
+								row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+							}
+							else {
+								row.addClass("npu_failed");
+							}
+						}
+					});
+				}
+			}, 250);
+			
 			var refreshScreen = function() {
-				$("#upFilter_panFilter table.searchpanel").attr("data-listing", "0");
-				$.examListTerm = "0000/00/0";
-				$.examListSubject = "Neptun";
-				
-				var previouslySelected = $("#upFilter_cmbSubjects").val();
-				$("#upFilter_cmbSubjects").val('0'); // Automatically select all subjects for the filter-reinitialisation to work
-				
-				window.setTimeout(function() {
-					$("#upFilter_cmbSubjects").val(previouslySelected);
-					window.setTimeout(function() {
-						npu.filterExams();
-					}, 500);
-				}, 500);
+				$("#h_exams_gridExamList_bodytable").removeAttr("data-processed");
 			}
 
 			window.setInterval(function() {
@@ -1075,201 +1100,17 @@ var npu = {
 			$("body").on("change", "#upFilter_cmbSubjects", function() {
 				$.examListSubjectValue = $(this).val();
 			});
-
-			var changeAllSubrowVisibility = function(visible) {
-				$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function() {
-					var buttonImg = $(this).find("td.header_plus img").first();
-					buttonImg.attr("src",
-						buttonImg.attr("src").replace(
-							(visible ? "plus" : "minus"),
-							(visible ? "minus" : "plus")
-						)
-					);
-				});
-
-				$("#h_exams_gridExamList_bodytable tbody tr.subrow").each(function() {
-					$(this).attr("style", (visible ? "" : "display:none"));
-					$(this).attr("visibility", (visible ? "visible" : "hidden"));
-				});
-			}
-			
 			window.setInterval(function() {
 				var panel = $("#upFilter_panFilter table.searchpanel");
 				if(panel.attr("data-listing") != "1" && ($.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value") || $.examListSubject != $.examListSubjectValue)) {
 					panel.attr("data-listing", "1");
-					
-					if ($.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value")) {
-						// A full term change invalidates the previously filtered subject list.
-						npu.runEval(function() {
-							$("#upFilter_expandedsearchbutton").click();
-						});
-					}
-					
 					$.examListTerm = $("#upFilter_cmbTerms option[selected]").attr("value");
 					$.examListSubject = $.examListSubjectValue;
-
-					window.setTimeout(function() {
-						// Override the default "show-hide all subrows" action to prevent reloading the page.
-						$("#h_exams_gridExamList_bodytable thead tr#h_exams_gridExamList_headerrow th.header_plus").attr("onclick", "").bind("click", function(e) {
-							e.preventDefault();
-
-							if (!$.examSubrowsExpanded) {
-								$("img#imgcollapse_allsubrows").attr("src",
-									$("img#imgcollapse_allsubrows").attr("src").replace("plus", "minus")
-								);
-							} else {
-								$("img#imgcollapse_allsubrows").attr("src",
-									$("img#imgcollapse_allsubrows").attr("src").replace("minus", "plus")
-								);
-							}
-
-							$.examSubrowsExpanded = !$.examSubrowsExpanded;
-							changeAllSubrowVisibility($.examSubrowsExpanded);
-						});
-						
-						$("#upFilter_cmbSubjects").attr("onchange", "").bind("change", function(e) {
-							e.preventDefault();
-							npu.filterExams();
-						});
-
-						if(npu.getUserData(null, null, "filterExams") == "1") {
-							successfulExams = npu.getSuccessfulExamSubjects();
-							npu.removeExams(successfulExams);
-						}
-						
-						npu.initializeExamFiltering();
-						npu.colourExams();
-					}, 1000);
+					npu.runEval(function() {
+						$("#upFilter_expandedsearchbutton").click();
+					});
 				}
-			}, 250);
-		},
-		
-		initializeExamFiltering: function() {
-			var subjectsToRemove = [];
-			
-			$("#upFilter_cmbSubjects").children("option").each(function() {
-				if ($(this).attr("value") !== "0") { // The 0 value option is the "All subjects" one which we ignore as it is default.
-					subjectsToRemove[subjectsToRemove.length] = $(this).html();
-				}
-			});
-				
-			$("#h_exams_gridExamList_bodytable tbody tr[id*=\"tr__\"]").each(function(idx, row) {
-				var subjectCode = $(row).find("td:nth-child(3)").html();
-				
-				// We utilise a different approach here (than the signed_exams list), we need to search for the course code.
-				var resultArr = $.grep(subjectsToRemove, function(elem) {
-					return elem.indexOf(subjectCode) !== -1;
-				});
-				
-				if (resultArr.length != 0) {
-					// Remove the subject of the currently iterated row if it is found in the array - so it won't be hidden afterwards
-					subjectsToRemove.splice( subjectsToRemove.indexOf(resultArr[0]), 1);
-				}
-			});
-			
-			$.each(subjectsToRemove, function(idx, subjectName) {
-				$("#upFilter_cmbSubjects").children("option").each(function() {
-					if ($(this).html().indexOf(subjectName) !== -1) {
-						$(this).remove();
-					}
-				});
-			});
-		},
-		
-		filterExams: function() {
-			var selected = $("#upFilter_cmbSubjects option:selected").first();
-			
-			if ($(selected).attr("value") === "0") {
-				$("#h_exams_gridExamList_bodytable tbody tr[id*=\"tr__\"]").each(function(idx, row) {
-					$(row).show();
-				});
-			}
-			else
-			{
-				$("#h_exams_gridExamList_bodytable tbody tr[id*=\"tr__\"]").each(function(idx, row) {
-					var subjectCode = $(row).find("td:nth-child(3)").html();
-					
-					if ($(selected).html().indexOf(subjectCode) !== -1) {
-						$(row).show();
-					} else {
-						$(row).hide();
-					}
-				});
-			}
-			
-			
-			var changeAllSubrowVisibility = function(visible) {
-				$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function() {
-					var buttonImg = $(this).find("td.header_plus img").first();
-					buttonImg.attr("src",
-						buttonImg.attr("src").replace(
-							(visible ? "plus" : "minus"),
-							(visible ? "minus" : "plus")
-						)
-					);
-				});
-
-				$("#h_exams_gridExamList_bodytable tbody tr.subrow").each(function() {
-					$(this).attr("style", (visible ? "" : "display:none"));
-					$(this).attr("visibility", (visible ? "visible" : "hidden"));
-				});
-			}
-			changeAllSubrowVisibility($.examSubrowsExpanded);
-		},
-
-		colourExams: function() {
-			$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function(idx, row) {
-				if ($(row).hasClass("gridrow_blue")) {
-					return;
-				}
-
-				var lastMark = $("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().find("table.subtable tbody tr:last td:nth-child(4)").html();
-
-				if (npu.isPassingGrade(lastMark)) {
-					$(row).addClass("npu_completed").attr("data-completed", "1");
-				} else {
-					$(row).addClass("npu_failed").attr("data-failed", "1");
-				}
-
-				$("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().find("table.subtable tbody tr").each(function(idx, row) {
-					if (npu.isPassingGrade($(row).find("td:nth-child(4)").html())) {
-						$(row).addClass("npu_completed").attr("data-completed", "1");
-					} else {
-						$(row).addClass("npu_failed").attr("data-failed", "1");
-					}
-				});
-			});
-		},
-
-		getSuccessfulExamSubjects: function() {
-			if(npu.getUserData(null, null, "filterExams") == "1") {
-				var subjectsToHide = [];
-
-				$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function(idx, row) {
-					var lastMark = $("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().find("table.subtable tbody tr:last td:nth-child(4)").html();
-
-					if (npu.isPassingGrade(lastMark)) {
-						var subjectName = $(row).find("td:nth-child(2)").find("span").first().html();
-						if ($.inArray(subjectName, subjectsToHide) === -1) {
-							subjectsToHide[subjectsToHide.length] = subjectName;
-						}
-					}
-				});
-				
-				return subjectsToHide;
-			}
-		},
-		
-		removeExams: function(subjects) {
-			if(npu.getUserData(null, null, "filterExams") == "1") {
-				$("#h_exams_gridExamList_bodytable tbody tr[hc=true]").each(function(idx, row) {
-					var subjectName = $(row).find("td:nth-child(2)").find("span").first().html();
-					if ($.inArray(subjectName, subjects) !== -1) {
-						$(row).remove();
-						$("#h_exams_gridExamList_bodytable tbody tr.subrow#" + row.id.replace("tr__", "trs__")).first().remove();
-					}
-				});
-			}
+			}, 100);
 		},
 
 	/* == SIGNED EXAM LIST == */
@@ -1294,50 +1135,23 @@ var npu = {
 					'} ' +
 				'</style>'
 			).appendTo("head");
-			$("body").on("click", "#h_signedexams_gridExamList_bodytable tbody td", function(e) {
-				if($(e.target).closest("td[onclick], td.contextcell_sel, td.contextcell").size() == 0) {
-					npu.runEval(function() {
-						$("td.contextcell, td.contextcell_sel", $(this).closest("tr")).trigger("click");
-					});
-					e.preventDefault();
-					return false;
-				}
-			});
-		},
-
-		/* Automatically list signed exams on page load and semester change */
-		initSignedExamAutoList: function() {
-			$('<style type="text/css"> #upFilter_bodytable tr.nostyle { display: none } </style>').appendTo("head");
+			
 			window.setInterval(function() {
-				var panel = $("#upFilter_panFilter table.searchpanel");
-				if(panel.attr("data-listing") != "1" && $.signedExamListTerm != $("#upFilter_cmbTerms option[selected]").attr("value")) {
-					panel.attr("data-listing", "1");
-					$.signedExamListTerm = $("#upFilter_cmbTerms option[selected]").attr("value");
-					panel.attr("data-listing", "1");
-					npu.runEval(function() {
-						$("#upFilter_expandedsearchbutton").click();
+				var table = $("#h_signedexams_gridExamList_bodytable");
+				
+				if(table.attr("data-processed") != "1") {
+					table.attr("data-processed", "1");
+					
+					$("tbody tr:not(.NoMatch)", table).each(function() {
+						var row = $(this);
+						row.removeClass("npu_completed npu_failed npu_missed");
+						var attended = $("td[n=Attended]", row)[0].attributes["checked"].value == "true";
+						var passed = npu.isPassingGrade($("td:nth-child(13)", row).text().trim());
+						console.log(attended);
+						row.addClass(attended ? (passed ? "npu_completed" : "npu_failed") : "npu_missed");
 					});
-
-					window.setTimeout(function() {
-						npu.colourSignedExams();
-					}, 1000);
 				}
-			}, 500);
-		},
-
-		colourSignedExams: function() {
-			$("#h_signedexams_gridExamList_bodytable tbody tr").each(function(idx, row) {
-				// Normal attr() or prop() doesn't seem to work here.
-				if ($(row).find("td[n=Attended]")[0].attributes["checked"].value == "false") {
-					$(row).addClass("npu_missed").attr("data-missed", "1");
-				} else {
-					if (npu.isPassingGrade($(row).find("td:nth-child(13)").html())) {
-						$(row).addClass("npu_completed").attr("data-completed", "1");
-					} else {
-						$(row).addClass("npu_failed").attr("data-failed", "1");
-					}
-				}
-			});
+			}, 250);
 		},
 
 	/* == STATISTICS == */

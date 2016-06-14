@@ -1058,15 +1058,19 @@ var npu = {
 							}
 						});
 						
-						if(markRows.size() > 0) {
-							lastMark = markRows.last();
-							var mark = $("td:nth-child(4)", lastMark).text().trim();
-							if(npu.isPassingGrade(mark)) {
-								row.addClass("npu_completed").attr("data-completed", "1");
-								row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+						if (!row.hasClass("gridrow_blue")) {
+							if(markRows.size() > 0) {
+								lastMark = markRows.last();
+								var mark = $("td:nth-child(4)", lastMark).text().trim();
+								if(npu.isPassingGrade(mark)) {
+									row.addClass("npu_completed").attr("data-completed", "1");
+									row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+								}
+								else {
+									row.addClass("npu_failed");
+								}
 							}
-							else {
-								row.addClass("npu_failed");
+						}
 							}
 						}
 					});

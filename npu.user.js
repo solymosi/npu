@@ -1061,12 +1061,19 @@ var npu = {
 						if(markRows.size() > 0) {
 							lastMark = markRows.last();
 							var mark = $("td:nth-child(4)", lastMark).text().trim();
+							var classToBeAdded = "";
+							
 							if(npu.isPassingGrade(mark)) {
-								row.addClass("npu_completed").attr("data-completed", "1");
+								classToBeAdded = "npu_completed";
+								row.attr("data-completed", "1");
 								row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
 							}
 							else {
-								row.addClass("npu_failed");
+								classToBeAdded = "npu_failed";
+							}
+							
+							if (!row.hasClass("gridrow_blue") && classToBeAdded !== "") {
+								row.addClass(classToBeAdded);
 							}
 						}
 					});

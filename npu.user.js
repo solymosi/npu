@@ -1050,18 +1050,13 @@ var npu = {
 						
 						markRows.each(function() {
 							var mark = $("td:nth-child(4)", this).text().trim();
-							if(npu.isPassingGrade(mark)) {
-								$(this).addClass("npu_completed");
-							}
-							else {
-								$(this).addClass("npu_failed");
-							}
+							$(this).addClass(npu.isPassingGrade(mark) ? "npu_completed" : "npu_failed");
 						});
 						
 						if(markRows.size() > 0) {
 							lastMark = markRows.last();
 							var mark = $("td:nth-child(4)", lastMark).text().trim();
-							var classToBeAdded = "";
+							var classToBeAdded = null;
 							
 							if(npu.isPassingGrade(mark)) {
 								classToBeAdded = "npu_completed";
@@ -1072,7 +1067,7 @@ var npu = {
 								classToBeAdded = "npu_failed";
 							}
 							
-							if (!row.hasClass("gridrow_blue") && classToBeAdded !== "") {
+							if (classToBeAdded && !row.hasClass("gridrow_blue")) {
 								row.addClass(classToBeAdded);
 							}
 						}

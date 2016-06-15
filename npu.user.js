@@ -1031,6 +1031,11 @@ var npu = {
 					'{ ' +
 						'display: none; ' +
 					'} ' +
+					'#upFilter_cmbSubjects option.npu_subscribed ' +
+					'{ ' +
+						'background-color: #F8EFB1 !important; ' +
+						'font-weight: bold; ' +
+					'} ' +
 					'#upFilter_cmbSubjects option.npu_completed ' +
 					'{ ' +
 						'background-color: #D5EFBA !important; ' +
@@ -1053,6 +1058,20 @@ var npu = {
 				}
 			});
 			
+			var nupAddToArray = function(arr, element) {
+				if ($.inArray(element, arr) === -1) {
+					arr[arr.length] = element;
+				}
+			}
+			
+			var stringHasSubstringInArray = function(arr, stringToMatch) {
+				var resultArr = $.grep(arr, function(elem) {
+					return stringToMatch.indexOf(elem) !== -1;
+				});
+				
+				return resultArr.length !== 0;
+			}
+			
 			window.setInterval(function() {
 				var table = $("#h_exams_gridExamList_bodytable");
 				var filterEnabled = npu.getUserData(null, null, "filterExams");
@@ -1061,7 +1080,7 @@ var npu = {
 					table.attr("data-processed", "1");
 					
 					if (!$.examSubjectFilterValid) {
-						$.examSubjectFilterCache = { 'found': [], 'completed': [], 'failed': [] };
+						$.examSubjectFilterCache = { 'found': [], 'subscribed': [], 'completed': [], 'failed': [] };
 					}
 					
 					$("tbody tr[id*=tr__]", table).each(function() {
@@ -1099,21 +1118,19 @@ var npu = {
 							}
 							
 							if (passed) {
-								if ($.inArray(courseCode, $.examSubjectFilterCache['completed']) === -1) {
-									$.examSubjectFilterCache['completed'][$.examSubjectFilterCache['completed'].length] = courseCode;
-								}
+								nupAddToArray($.examSubjectFilterCache['completed'], courseCode);
 							}
 							else {
-								if ($.inArray(courseCode, $.examSubjectFilterCache['failed']) === -1) {
-									$.examSubjectFilterCache['failed'][$.examSubjectFilterCache['failed'].length] = courseCode;
-								}
+								nupAddToArray($.examSubjectFilterCache['failed'], courseCode);
 							}
 						}
 						
+						if (row.hasClass("gridrow_blue")) {
+							nupAddToArray($.examSubjectFilterCache['subscribed'], courseCode);
+						}
+						
 						if (!$.examSubjectFilterValid && !row.hasClass("npu_hidden")) {
-							if ($.inArray(courseCode, $.examSubjectFilterCache['found']) === -1) {
-								$.examSubjectFilterCache['found'][$.examSubjectFilterCache['found'].length] = courseCode;
-							}
+							nupAddToArray($.examSubjectFilterCache['found'], courseCode);
 						}
 					});
 					
@@ -1127,7 +1144,7 @@ var npu = {
 							return;
 						}
 					
-						$(this).removeClass("npu_hidden");
+						$(this).removeClass("npu_hidden npu_subscribed npu_completed npu_failed");
 						
 						var optionText = $(this).text();
 						
@@ -1136,24 +1153,21 @@ var npu = {
 							return optionText.indexOf(elem) !== -1;
 						});
 						
-						if (resultArr.length === 0) {
+						if (!stringHasSubstringInArray($.examSubjectFilterCache['found'], optionText)) {
 							$(this).addClass("npu_hidden");
 						}
 						else {
-							var resultArr = $.grep($.examSubjectFilterCache['completed'], function(elem) {
-								return optionText.indexOf(elem) !== -1;
-							});
-							
-							if (resultArr.length !== 0) {
-								$(this).addClass("npu_completed");
+							if (stringHasSubstringInArray($.examSubjectFilterCache['subscribed'], optionText)) {
+								$(this).addClass("npu_subscribed");
 							}
-							
-							var resultArr = $.grep($.examSubjectFilterCache['failed'], function(elem) {
-								return optionText.indexOf(elem) !== -1;
-							});
-							
-							if (resultArr.length !== 0) {
-								$(this).addClass("npu_failed");
+							else {
+								if (stringHasSubstringInArray($.examSubjectFilterCache['completed'], optionText)) {
+									$(this).addClass("npu_completed");
+								}
+								
+								if (stringHasSubstringInArray($.examSubjectFilterCache['failed'], optionText)) {
+									$(this).addClass("npu_failed");
+								}
 							}
 						}
 					});
@@ -1177,7 +1191,8 @@ var npu = {
 						// Changing the filterExams value must force-invalidate the user's filter selection to recache the subjects.
 						// (And to prevent Neptun locking itself into filtering just one subject as hidden <option>s can also be selected in unconventional ways.)
 						$("#upFilter_cmbSubjects").val('0');
-						refreshScreen();
+						$.examListSubjectValue = 0;
+						
 						npu.runEval(function() {
 							$("#upFilter_expandedsearchbutton").click();
 						});

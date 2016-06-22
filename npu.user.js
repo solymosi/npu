@@ -750,7 +750,8 @@ var npu = {
 				if($(e.target).closest("input[type=checkbox]").size() == 0 && $(e.target).closest("td[onclick]").size() == 0) {
 					var checkbox = $("input[type=checkbox]", $(this).closest("tr")).get(0);
 					checkbox.checked = !checkbox.checked;
-					try { npu.getAJAXInstance().Cv($("input[type=checkbox]", $(this).closest("tr")).get(0), "1"); } catch(ex) { }
+					npu.getAjaxInstance(this) &&
+						npu.getAjaxInstance(this).Cv($("input[type=checkbox]", $(this).closest("tr")).get(0), "1");
 					e.preventDefault();
 					return false;
 				}
@@ -881,7 +882,7 @@ var npu = {
 				if(innerTable.size() > 0 && innerTable.attr("data-inner-choices-displayed") != "1") {
 					innerTable.attr("data-inner-choices-displayed", "1");
 					if($("th.headerWithCheckbox", innerTable).size() == 0) {
-						var objName = npu.getAJAXInstanceID();
+						var objName = npu.getAjaxInstanceId(this);
 						$('<th id="head_chk" class="headerWithCheckbox headerDisabled" colname="chk" title="Válasszon ki legalább egyet!" align="center"><label class="hiddenforlabel" for="Addsubject_course1_gridCourses_bodytable_chk_chkall">Összes kijelölése</label><span></span><input aria-disabled="false" role="checkbox" id="Addsubject_course1_gridCourses_bodytable_chk_chkall" onclick="' + objName + '.AllCheckBox(this.checked,\'chk\',true,1,this)" type="checkbox"><span></span></th>').appendTo("#Addsubject_course1_gridCourses_headerrow");
 						$("tbody tr", innerTable).each(function() {
 							$('<td t="chks" n="chk" class="aligncenter"><label class="hiddenforlabel" for="chk' + $(this).attr("id").substring(4) + '">' + $("td:nth-child(2)", this).text().trim() + '</label><input id="chk' + $(this).attr("id").substring(4) + '" aria-disabled="false" role="checkbox" onclick="' + objName + '.Cv(this,\'1\');" type="checkbox"></td>').appendTo(this);
@@ -961,14 +962,14 @@ var npu = {
 										var courseCode = $("td:nth-child(2)", this).text().trim().toUpperCase();
 										var checkbox = $("input[type=checkbox]", this).get(0);
 										checkbox.checked = $.inArray(courseCode, courses[subjectCode.trim().toUpperCase()]) != -1;
-										try { npu.getAJAXInstance().Cv(checkbox, "1"); } catch(ex) { }
+										npu.getAjaxInstance(this) && npu.getAjaxInstance(this).Cv(checkbox, "1");
 									});
 								});
 								$(".npu_course_choice_actions .npu_course_choice_apply").click(function() {
 									npu.runEval(function() {
 										$(".npu_course_choice_actions .npu_course_choice_load").trigger("click");
 									});
-									try { npu.getAJAXInstance().SelectFunction("update"); } catch(ex) { }
+									npu.getAjaxInstance(this) && npu.getAjaxInstance(this).SelectFunction("update");
 								});
 								$(".npu_course_choice_actions .npu_course_choice_delete").click(function() {
 									if(confirm("Valóban törölni szeretnéd a tárolt kurzusokat?")) {
@@ -1244,19 +1245,13 @@ var npu = {
 		},
 
 		/* Get the current AJAX grid instance */
-		getAJAXInstance: function() {
-			if (npu.getAJAXInstanceID() !== false) {
-				return unsafeWindow[npu.getAJAXInstanceID()];
-			}
-			return false;
+		getAjaxInstance: function(element) {
+			return npu.getAjaxInstanceId(element) && unsafeWindow[npu.getAjaxInstanceId(element)];
 		},
 
-		getAJAXInstanceID: function() {
-			var ajaxGrid = $("div[type=ajaxgrid]");
-			if (ajaxGrid.length !== 0) {
-				return ajaxGrid.first().attr("instanceid");
-			}
-			return false;
+		getAjaxInstanceId: function(element) {
+			var ajaxGrid = $(element).closest("div[type=ajaxgrid]");
+			return ajaxGrid.size() > 0 && ajaxGrid.first().attr("instanceid");
 		},
 		
 		/* Returns whether the specified ID is the current page */

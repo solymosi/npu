@@ -507,7 +507,7 @@ var npu = {
 					var select = $('<ul class="termSelect"></ul>');
 					var stored = npu.getUserData(null, null, ["termSelect", npu.getPage()]);
 					var found = false;
-					var admissionSemester = $("#lblTrainingName").text().split("[")[0].split(":")[1];
+					var admissionSemester = String($("#lblTrainingName").text().match(/:(\d{4}\/\d{2}\/\d)\[.*?\]\)/)[1]);
 					
 					$("option", termSelect).each(function() {
 						if($(this).attr("value") == "-1") { return; }

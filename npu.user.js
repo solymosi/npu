@@ -370,6 +370,7 @@ var npu = {
 			$("#panHeader, #panCloseHeader").hide();
 			$("table.top_menu_wrapper").css("margin-top", "5px").css("margin-bottom", "8px");
 			$("#form1 > fieldset").css("border", "0 none");
+			$("#span_changeproject").parent().hide();
 		},
 		
 		/* Add current page name to the window title */
@@ -506,8 +507,12 @@ var npu = {
 					var select = $('<ul class="termSelect"></ul>');
 					var stored = npu.getUserData(null, null, ["termSelect", npu.getPage()]);
 					var found = false;
+					var match = $("#lblTrainingName").text().match(/:(\d{4}\/\d{2}\/\d)\[.*?\]\)$/);
+					var admissionSemester = match && String(match[1]);
+					
 					$("option", termSelect).each(function() {
 						if($(this).attr("value") == "-1") { return; }
+						if(admissionSemester && $(this).text() < admissionSemester) { return; }
 						var item = $('<li><a href="#" data-value="' + $(this).attr("value") + '" class="' + (termSelect.val() == $(this).attr("value") ? "button" : "") + '">' + $(this).html() + "</a></li>");
 						if(typeof stored != "undefined" && $(this).attr("value") == stored) {
 							found = true;

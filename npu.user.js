@@ -507,7 +507,7 @@ var npu = {
 					var select = $('<ul class="termSelect"></ul>');
 					var stored = npu.getUserData(null, null, ["termSelect", npu.getPage()]);
 					var found = false;
-					var match = $("#lblTrainingName").text().match(/:(\d{4}\/\d{2}\/\d)\[.*?\]\)$/);
+					var match = $("#lblTrainingName").text().match(/:(\d{4}\/\d{2}\/\d)\[.*?\]\)/);
 					var admissionSemester = match && String(match[1]);
 					
 					$("option", termSelect).each(function() {

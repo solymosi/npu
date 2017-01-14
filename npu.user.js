@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.49.10
+// @version        1.50.0
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -899,19 +899,8 @@ var npu = {
 					var subjectText = $("#Subject_data_for_schedule_ctl00:visible > div > div > h2").html();
 					if(subjectText != null) {
 						var part = subjectText.split("<br>")[0];
-						if(part.charAt(part.length - 1) == ')') {
-							var depth = 0;
-							for(var i = part.length - 2; i >= 0; i--) {
-								var c = part.charAt(i);
-								if(depth == 0 && c == '(') {
-									var subjectCode = part.substring(i + 1, part.length - 1);
-									break;
-								}
-								depth = c == ')' ? depth + 1 : depth;
-								depth = c == '(' && depth > 0 ? depth - 1 : depth;
-							}
-						}
-						if(typeof subjectCode != "undefined") {
+						subjectCode = npu.parseSubjectCode(part);
+						if(subjectCode) {
 							var choices = courses[subjectCode.trim().toUpperCase()];
 							var hasChoices = (typeof choices != "undefined" && choices != null && choices.length > 0);
 							if(hasChoices) {
@@ -1027,6 +1016,30 @@ var npu = {
 					'{ ' +
 						'cursor: pointer; ' +
 					'} ' +
+					'#upFilter_cmbSubjects option[value="0"] ' +
+					'{ ' +
+						'font-size: 13px; ' +
+						'font-weight: bold; ' +
+						'text-decoration: underline; ' +
+					'} ' +
+					'#upFilter_cmbSubjects option.npu_hidden ' +
+					'{ ' +
+						'display: none; ' +
+					'} ' +
+					'#upFilter_cmbSubjects option.npu_subscribed ' +
+					'{ ' +
+						'background-color: #F8EFB1 !important; ' +
+						'font-weight: bold; ' +
+					'} ' +
+					'#upFilter_cmbSubjects option.npu_completed ' +
+					'{ ' +
+						'background-color: #D5EFBA !important; ' +
+					'} ' +
+					'#upFilter_cmbSubjects option.npu_failed ' +
+					'{ ' +
+						'background-color: #F2A49F !important; ' +
+						'color: #3A3C3E !important; ' +
+					'} ' +
 				'</style>'
 			).appendTo("head");
 			
@@ -1049,9 +1062,12 @@ var npu = {
 					
 					$("tbody tr[id*=tr__]", table).each(function() {
 						var row = $(this);
+						var courseCode = $("td:nth-child(3)", row).clone().children().remove().end().text();
 						var rowId = row.attr("id").replace(/^tr__/, "");
 						var subRow = $("#trs__" + rowId, row.closest("tbody"));
 						var markRows = $(".subtable > tbody > tr", subRow);
+						var subscribed = row.hasClass("gridrow_blue");
+						var classToBeAdded = null;
 						row.add(markRows).removeClass("npu_completed npu_failed").removeAttr("data-completed");
 						
 						markRows.each(function() {
@@ -1060,24 +1076,35 @@ var npu = {
 						});
 						
 						if(markRows.size() > 0) {
-							lastMark = markRows.last();
+							var lastMark = markRows.last();
 							var mark = $("td:nth-child(4)", lastMark).text().trim();
-							var classToBeAdded = null;
-							
-							if(npu.isPassingGrade(mark)) {
-								classToBeAdded = "npu_completed";
+							var passed = npu.isPassingGrade(mark);
+							!subscribed && (classToBeAdded = passed ? "npu_completed" : "npu_failed");
+							if(passed) {
 								row.attr("data-completed", "1");
 								row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
 							}
-							else {
-								classToBeAdded = "npu_failed";
-							}
-							
-							if (classToBeAdded && !row.hasClass("gridrow_blue")) {
-								row.addClass(classToBeAdded);
-							}
+						}
+						
+						classToBeAdded = classToBeAdded || (subscribed ? "npu_subscribed" : "npu_found");
+						row.addClass(classToBeAdded);
+						
+						if(!$("#upFilter_cmbSubjects").val() || $("#upFilter_cmbSubjects").val() === "0") {
+							$.examSubjectFilterCache = $.examSubjectFilterCache || {};
+							$.examSubjectFilterCache[courseCode] = classToBeAdded;
 						}
 					});
+					
+					if($.examSubjectFilterCache) {
+						$("#upFilter_cmbSubjects > option").each(function() {
+							$(this).removeClass("npu_hidden npu_completed npu_failed npu_subscribed npu_found");
+							var subjectCode = npu.parseSubjectCode($(this).text().trim());
+							var classToBeAdded = $.examSubjectFilterCache[subjectCode];
+							var filterEnabled = npu.getUserData(null, null, "filterExams");
+							subjectCode && $(this).addClass(classToBeAdded || "npu_hidden");
+							filterEnabled && classToBeAdded === "npu_completed" && $(this).addClass("npu_hidden");
+						});
+					}
 				}
 			}, 250);
 			
@@ -1093,7 +1120,9 @@ var npu = {
 					$("input", filterCell).change(function(e) {
 						npu.setUserData(null, null, "filterExams", $(this).get(0).checked);
 						npu.saveData();
-						refreshScreen();
+						npu.runEval(function() {
+							$("#upFilter_expandedsearchbutton").click();
+						});
 					});
 					pager.prepend(filterCell);
 				}
@@ -1109,8 +1138,14 @@ var npu = {
 			});
 			window.setInterval(function() {
 				var panel = $("#upFilter_panFilter table.searchpanel");
-				if(panel.attr("data-listing") != "1" && ($.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value") || $.examListSubject != $.examListSubjectValue)) {
+				var termChanged = $.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value");
+				var subjectChanged = $.examListSubject != $.examListSubjectValue;
+				
+				if(panel.attr("data-listing") != "1" && (termChanged || subjectChanged)) {
 					panel.attr("data-listing", "1");
+					if(termChanged) {
+						$.examSubjectFilterCache = null;
+					}
 					$.examListTerm = $("#upFilter_cmbTerms option[selected]").attr("value");
 					$.examListSubject = $.examListSubjectValue;
 					npu.runEval(function() {
@@ -1311,6 +1346,23 @@ var npu = {
 				}
 				o = o[n];
 			}
+		},
+		
+		/* Parses a subject code that is in parentheses at the end of a string */
+		parseSubjectCode: function(str) {
+			str = str.trim();
+			if(str.charAt(str.length - 1) == ')') {
+				var depth = 0;
+				for(var i = str.length - 2; i >= 0; i--) {
+					var c = str.charAt(i);
+					if(depth == 0 && c == '(') {
+						return str.substring(i + 1, str.length - 1);
+					}
+					depth = c == ')' ? depth + 1 : depth;
+					depth = c == '(' && depth > 0 ? depth - 1 : depth;
+				}
+			}
+			return null;
 		},
 		
 		/* Generates a random token */

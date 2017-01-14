@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.49.10
+// @version        1.50.0
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -899,19 +899,8 @@ var npu = {
 					var subjectText = $("#Subject_data_for_schedule_ctl00:visible > div > div > h2").html();
 					if(subjectText != null) {
 						var part = subjectText.split("<br>")[0];
-						if(part.charAt(part.length - 1) == ')') {
-							var depth = 0;
-							for(var i = part.length - 2; i >= 0; i--) {
-								var c = part.charAt(i);
-								if(depth == 0 && c == '(') {
-									var subjectCode = part.substring(i + 1, part.length - 1);
-									break;
-								}
-								depth = c == ')' ? depth + 1 : depth;
-								depth = c == '(' && depth > 0 ? depth - 1 : depth;
-							}
-						}
-						if(typeof subjectCode != "undefined") {
+						subjectCode = npu.parseSubjectCode(part);
+						if(subjectCode) {
 							var choices = courses[subjectCode.trim().toUpperCase()];
 							var hasChoices = (typeof choices != "undefined" && choices != null && choices.length > 0);
 							if(hasChoices) {
@@ -1085,16 +1074,14 @@ var npu = {
 				if(table.attr("data-processed") != "1") {
 					table.attr("data-processed", "1");
 					
-					if (!$.examSubjectFilterValid) {
-						$.examSubjectFilterCache = { 'found': [], 'subscribed': [], 'completed': [], 'failed': [] };
-					}
-					
 					$("tbody tr[id*=tr__]", table).each(function() {
 						var row = $(this);
-						var courseCode = $("td:nth-child(3)", row).text();
+						var courseCode = $("td:nth-child(3)", row).clone().children().remove().end().text();
 						var rowId = row.attr("id").replace(/^tr__/, "");
 						var subRow = $("#trs__" + rowId, row.closest("tbody"));
 						var markRows = $(".subtable > tbody > tr", subRow);
+						var subscribed = row.hasClass("gridrow_blue");
+						var classToBeAdded = null;
 						row.add(markRows).removeClass("npu_completed npu_failed").removeAttr("data-completed");
 						
 						markRows.each(function() {
@@ -1103,80 +1090,33 @@ var npu = {
 						});
 						
 						if(markRows.size() > 0) {
-							lastMark = markRows.last();
+							var lastMark = markRows.last();
 							var mark = $("td:nth-child(4)", lastMark).text().trim();
 							var passed = npu.isPassingGrade(mark);
-							var classToBeAdded = null;
-							
-							if (!row.hasClass("gridrow_blue")) {
-								if(passed) {
-									classToBeAdded = "npu_completed";
-									row.attr("data-completed", "1");
-									row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
-								}
-								else {
-									classToBeAdded = "npu_failed";
-								}
-								
-								if (classToBeAdded) {
-									row.addClass(classToBeAdded);
-								}
-							}
-							
-							if (passed) {
-								nupAddToArray($.examSubjectFilterCache['completed'], courseCode);
-							}
-							else {
-								nupAddToArray($.examSubjectFilterCache['failed'], courseCode);
+							!subscribed && (classToBeAdded = passed ? "npu_completed" : "npu_failed");
+							if(passed) {
+								row.attr("data-completed", "1");
+								row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
 							}
 						}
 						
-						if (row.hasClass("gridrow_blue")) {
-							nupAddToArray($.examSubjectFilterCache['subscribed'], courseCode);
-						}
+						classToBeAdded = classToBeAdded || (subscribed ? "npu_subscribed" : "npu_found");
+						row.addClass(classToBeAdded);
 						
-						if (!$.examSubjectFilterValid && !row.hasClass("npu_hidden")) {
-							nupAddToArray($.examSubjectFilterCache['found'], courseCode);
+						if(!$("#upFilter_cmbSubjects").val() || $("#upFilter_cmbSubjects").val() === "0") {
+							$.examSubjectFilterCache = $.examSubjectFilterCache || {};
+							$.examSubjectFilterCache[courseCode] = classToBeAdded;
 						}
 					});
 					
-					if (!$.examSubjectFilterValid) {
-						$.examSubjectFilterValid = true;
-					}
-					
-					// Hiding the options must always happen in every process run as changing the subject makes Neptun redraw the listbox.
-					$("#upFilter_cmbSubjects option").each(function() {
-						if ($(this).val() === "0") { // Skip "All subjects"
-							return;
-						}
-					
-						$(this).removeClass("npu_hidden npu_subscribed npu_completed npu_failed");
-						
-						var optionText = $(this).text();
-						
-						// Check if any exams are posted for the current subject
-						var resultArr = $.grep($.examSubjectFilterCache['found'], function(elem) {
-							return optionText.indexOf(elem) !== -1;
+					if($.examSubjectFilterCache) {
+						$("#upFilter_cmbSubjects > option").each(function() {
+							$(this).removeClass("npu_hidden npu_completed npu_failed npu_subscribed npu_found");
+							var subjectCode = npu.parseSubjectCode($(this).text().trim());
+							var classToBeAdded = $.examSubjectFilterCache[subjectCode];
+							subjectCode && $(this).addClass(classToBeAdded || "npu_hidden");
 						});
-						
-						if (!stringHasSubstringInArray($.examSubjectFilterCache['found'], optionText)) {
-							$(this).addClass("npu_hidden");
-						}
-						else {
-							if (stringHasSubstringInArray($.examSubjectFilterCache['subscribed'], optionText)) {
-								$(this).addClass("npu_subscribed");
-							}
-							else {
-								if (stringHasSubstringInArray($.examSubjectFilterCache['completed'], optionText)) {
-									$(this).addClass("npu_completed");
-								}
-								
-								if (stringHasSubstringInArray($.examSubjectFilterCache['failed'], optionText)) {
-									$(this).addClass("npu_failed");
-								}
-							}
-						}
-					});
+					}
 				}
 			}, 250);
 			
@@ -1192,13 +1132,6 @@ var npu = {
 					$("input", filterCell).change(function(e) {
 						npu.setUserData(null, null, "filterExams", $(this).get(0).checked);
 						npu.saveData();
-						$.examSubjectFilterValid = false;
-						
-						// Changing the filterExams value must force-invalidate the user's filter selection to recache the subjects.
-						// (And to prevent Neptun locking itself into filtering just one subject as hidden <option>s can also be selected in unconventional ways.)
-						$("#upFilter_cmbSubjects").val('0');
-						$.examListSubjectValue = 0;
-						
 						npu.runEval(function() {
 							$("#upFilter_expandedsearchbutton").click();
 						});
@@ -1217,14 +1150,14 @@ var npu = {
 			});
 			window.setInterval(function() {
 				var panel = $("#upFilter_panFilter table.searchpanel");
-				if(panel.attr("data-listing") != "1" && ($.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value") || $.examListSubject != $.examListSubjectValue)) {
+				var termChanged = $.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value");
+				var subjectChanged = $.examListSubject != $.examListSubjectValue;
+				
+				if(panel.attr("data-listing") != "1" && (termChanged || subjectChanged)) {
 					panel.attr("data-listing", "1");
-					
-					if ($.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value") || (!$.examListSubjectValue || $.examListSubjectValue == 0)) {
-					// At page load, the value is undefined. Then (for "All subjects") it is sometimes 0 and sometimes undefined.
-						$.examSubjectFilterValid = false;
+					if(termChanged) {
+						$.examSubjectFilterCache = null;
 					}
-					
 					$.examListTerm = $("#upFilter_cmbTerms option[selected]").attr("value");
 					$.examListSubject = $.examListSubjectValue;
 					npu.runEval(function() {
@@ -1425,6 +1358,23 @@ var npu = {
 				}
 				o = o[n];
 			}
+		},
+		
+		/* Parses a subject code that is in parentheses at the end of a string */
+		parseSubjectCode: function(str) {
+			str = str.trim();
+			if(str.charAt(str.length - 1) == ')') {
+				var depth = 0;
+				for(var i = str.length - 2; i >= 0; i--) {
+					var c = str.charAt(i);
+					if(depth == 0 && c == '(') {
+						return str.substring(i + 1, str.length - 1);
+					}
+					depth = c == ')' ? depth + 1 : depth;
+					depth = c == '(' && depth > 0 ? depth - 1 : depth;
+				}
+			}
+			return null;
 		},
 		
 		/* Generates a random token */

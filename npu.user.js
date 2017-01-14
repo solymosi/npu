@@ -1100,7 +1100,9 @@ var npu = {
 							$(this).removeClass("npu_hidden npu_completed npu_failed npu_subscribed npu_found");
 							var subjectCode = npu.parseSubjectCode($(this).text().trim());
 							var classToBeAdded = $.examSubjectFilterCache[subjectCode];
+							var filterEnabled = npu.getUserData(null, null, "filterExams");
 							subjectCode && $(this).addClass(classToBeAdded || "npu_hidden");
+							filterEnabled && classToBeAdded === "npu_completed" && $(this).addClass("npu_hidden");
 						});
 					}
 				}

@@ -1053,20 +1053,6 @@ var npu = {
 				}
 			});
 			
-			var nupAddToArray = function(arr, element) {
-				if ($.inArray(element, arr) === -1) {
-					arr[arr.length] = element;
-				}
-			}
-			
-			var stringHasSubstringInArray = function(arr, stringToMatch) {
-				var resultArr = $.grep(arr, function(elem) {
-					return stringToMatch.indexOf(elem) !== -1;
-				});
-				
-				return resultArr.length !== 0;
-			}
-			
 			window.setInterval(function() {
 				var table = $("#h_exams_gridExamList_bodytable");
 				var filterEnabled = npu.getUserData(null, null, "filterExams");

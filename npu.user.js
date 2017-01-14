@@ -1027,6 +1027,30 @@ var npu = {
 					'{ ' +
 						'cursor: pointer; ' +
 					'} ' +
+					'#upFilter_cmbSubjects option[value="0"] ' +
+					'{ ' +
+						'font-size: 13px; ' +
+						'font-weight: bold; ' +
+						'text-decoration: underline; ' +
+					'} ' +
+					'#upFilter_cmbSubjects option.npu_hidden ' +
+					'{ ' +
+						'display: none; ' +
+					'} ' +
+					'#upFilter_cmbSubjects option.npu_subscribed ' +
+					'{ ' +
+						'background-color: #F8EFB1 !important; ' +
+						'font-weight: bold; ' +
+					'} ' +
+					'#upFilter_cmbSubjects option.npu_completed ' +
+					'{ ' +
+						'background-color: #D5EFBA !important; ' +
+					'} ' +
+					'#upFilter_cmbSubjects option.npu_failed ' +
+					'{ ' +
+						'background-color: #F2A49F !important; ' +
+						'color: #3A3C3E !important; ' +
+					'} ' +
 				'</style>'
 			).appendTo("head");
 			
@@ -1040,6 +1064,20 @@ var npu = {
 				}
 			});
 			
+			var nupAddToArray = function(arr, element) {
+				if ($.inArray(element, arr) === -1) {
+					arr[arr.length] = element;
+				}
+			}
+			
+			var stringHasSubstringInArray = function(arr, stringToMatch) {
+				var resultArr = $.grep(arr, function(elem) {
+					return stringToMatch.indexOf(elem) !== -1;
+				});
+				
+				return resultArr.length !== 0;
+			}
+			
 			window.setInterval(function() {
 				var table = $("#h_exams_gridExamList_bodytable");
 				var filterEnabled = npu.getUserData(null, null, "filterExams");
@@ -1047,8 +1085,13 @@ var npu = {
 				if(table.attr("data-processed") != "1") {
 					table.attr("data-processed", "1");
 					
+					if (!$.examSubjectFilterValid) {
+						$.examSubjectFilterCache = { 'found': [], 'subscribed': [], 'completed': [], 'failed': [] };
+					}
+					
 					$("tbody tr[id*=tr__]", table).each(function() {
 						var row = $(this);
+						var courseCode = $("td:nth-child(3)", row).text();
 						var rowId = row.attr("id").replace(/^tr__/, "");
 						var subRow = $("#trs__" + rowId, row.closest("tbody"));
 						var markRows = $(".subtable > tbody > tr", subRow);
@@ -1062,19 +1105,75 @@ var npu = {
 						if(markRows.size() > 0) {
 							lastMark = markRows.last();
 							var mark = $("td:nth-child(4)", lastMark).text().trim();
+							var passed = npu.isPassingGrade(mark);
 							var classToBeAdded = null;
 							
-							if(npu.isPassingGrade(mark)) {
-								classToBeAdded = "npu_completed";
-								row.attr("data-completed", "1");
-								row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
-							}
-							else {
-								classToBeAdded = "npu_failed";
+							if (!row.hasClass("gridrow_blue")) {
+								if(passed) {
+									classToBeAdded = "npu_completed";
+									row.attr("data-completed", "1");
+									row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+								}
+								else {
+									classToBeAdded = "npu_failed";
+								}
+								
+								if (classToBeAdded) {
+									row.addClass(classToBeAdded);
+								}
 							}
 							
-							if (classToBeAdded && !row.hasClass("gridrow_blue")) {
-								row.addClass(classToBeAdded);
+							if (passed) {
+								nupAddToArray($.examSubjectFilterCache['completed'], courseCode);
+							}
+							else {
+								nupAddToArray($.examSubjectFilterCache['failed'], courseCode);
+							}
+						}
+						
+						if (row.hasClass("gridrow_blue")) {
+							nupAddToArray($.examSubjectFilterCache['subscribed'], courseCode);
+						}
+						
+						if (!$.examSubjectFilterValid && !row.hasClass("npu_hidden")) {
+							nupAddToArray($.examSubjectFilterCache['found'], courseCode);
+						}
+					});
+					
+					if (!$.examSubjectFilterValid) {
+						$.examSubjectFilterValid = true;
+					}
+					
+					// Hiding the options must always happen in every process run as changing the subject makes Neptun redraw the listbox.
+					$("#upFilter_cmbSubjects option").each(function() {
+						if ($(this).val() === "0") { // Skip "All subjects"
+							return;
+						}
+					
+						$(this).removeClass("npu_hidden npu_subscribed npu_completed npu_failed");
+						
+						var optionText = $(this).text();
+						
+						// Check if any exams are posted for the current subject
+						var resultArr = $.grep($.examSubjectFilterCache['found'], function(elem) {
+							return optionText.indexOf(elem) !== -1;
+						});
+						
+						if (!stringHasSubstringInArray($.examSubjectFilterCache['found'], optionText)) {
+							$(this).addClass("npu_hidden");
+						}
+						else {
+							if (stringHasSubstringInArray($.examSubjectFilterCache['subscribed'], optionText)) {
+								$(this).addClass("npu_subscribed");
+							}
+							else {
+								if (stringHasSubstringInArray($.examSubjectFilterCache['completed'], optionText)) {
+									$(this).addClass("npu_completed");
+								}
+								
+								if (stringHasSubstringInArray($.examSubjectFilterCache['failed'], optionText)) {
+									$(this).addClass("npu_failed");
+								}
 							}
 						}
 					});
@@ -1093,7 +1192,16 @@ var npu = {
 					$("input", filterCell).change(function(e) {
 						npu.setUserData(null, null, "filterExams", $(this).get(0).checked);
 						npu.saveData();
-						refreshScreen();
+						$.examSubjectFilterValid = false;
+						
+						// Changing the filterExams value must force-invalidate the user's filter selection to recache the subjects.
+						// (And to prevent Neptun locking itself into filtering just one subject as hidden <option>s can also be selected in unconventional ways.)
+						$("#upFilter_cmbSubjects").val('0');
+						$.examListSubjectValue = 0;
+						
+						npu.runEval(function() {
+							$("#upFilter_expandedsearchbutton").click();
+						});
 					});
 					pager.prepend(filterCell);
 				}
@@ -1111,6 +1219,12 @@ var npu = {
 				var panel = $("#upFilter_panFilter table.searchpanel");
 				if(panel.attr("data-listing") != "1" && ($.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value") || $.examListSubject != $.examListSubjectValue)) {
 					panel.attr("data-listing", "1");
+					
+					if ($.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value") || (!$.examListSubjectValue || $.examListSubjectValue == 0)) {
+					// At page load, the value is undefined. Then (for "All subjects") it is sometimes 0 and sometimes undefined.
+						$.examSubjectFilterValid = false;
+					}
+					
 					$.examListTerm = $("#upFilter_cmbTerms option[selected]").attr("value");
 					$.examListSubject = $.examListSubjectValue;
 					npu.runEval(function() {

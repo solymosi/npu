@@ -7,6 +7,7 @@
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
 // @include        https://nappw.dfad.duf.hu/hallgato/*
+// @include        https://neptun*.uni-bge.hu/hallgato/*
 // @include        https://host.sdakft.hu/*
 // @include        https://neptun.ejf.hu/ejfhw/*
 // @grant          GM_xmlhttpRequest

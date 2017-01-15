@@ -18,18 +18,18 @@
 // ==/UserScript==
 
 var npu = {
-  
+
   /* == STARTUP == */
-  
+
     /* Run features */
     init: function() {
       if(!this.isNeptunPage()) {
         return;
       }
-      
+
       this.initParameters();
       this.initStorage();
-      
+
       if(this.isLogin()) {
         this.initUserSelect();
         this.initAutoLogin();
@@ -43,30 +43,30 @@ var npu = {
         this.fixPagination();
         this.initKeepSession();
         this.initProgressIndicator();
-        
+
         if(this.isPage("0203") || this.isPage("c_common_timetable")) {
           this.fixTimetable();
         }
-        
+
         if(this.isPage("0206") || this.isPage("h_markbook")) {
           this.fixMarkList();
         }
-        
+
         if(this.isPage("0222") || this.isPage("h_advance")) {
           this.fixProgressList();
         }
-        
+
         if(this.isPage("0303") || this.isPage("h_addsubjects")) {
           this.fixCourseList();
           this.initCourseAutoList();
           this.initCourseStore();
         }
-        
+
         if(this.isPage("0401") || this.isPage("h_exams")) {
           this.fixExamList();
           this.initExamAutoList();
         }
-        
+
         if(this.isPage("0402") || this.isPage("h_signedexams")) {
           this.fixSignedExamList();
         }
@@ -74,33 +74,33 @@ var npu = {
         this.initStat();
       }
     },
-  
+
   /* == USER DATA == */
-  
+
     /* Stored data */
     data: { },
-    
+
     /* Initialize the storage module */
     initStorage: function() {
       npu.loadData();
     },
-    
+
     /* Load all data from local storage */
     loadData: function() {
       try {
-        npu.data = JSON.parse(GM_getValue("data")) || {}; 
+        npu.data = JSON.parse(GM_getValue("data")) || {};
       }
       catch(e) { }
       npu.upgradeSchema();
     },
-    
+
     /* Save all data to local storage */
     saveData: function() {
       this.runAsync(function() {
         GM_setValue("data", JSON.stringify(npu.data));
       });
     },
-    
+
     /* Gets the specified property or all data of the specified user or the current user */
     getUserData: function(domain, user, key) {
       domain = domain ? domain : npu.domain;
@@ -109,7 +109,7 @@ var npu = {
       key = key.length == 1 && typeof key[0].length != "undefined" ? key[0] : key;
       return npu.getChild(npu.data, ["users", domain, user, "data"].concat(key));
     },
-    
+
     /* Sets the specified property of the specified user or the current user */
     setUserData: function(domain, user, key, value) {
       domain = domain ? domain : npu.domain;
@@ -119,11 +119,11 @@ var npu = {
       value = arguments.length > 4 ? arguments[arguments.length - 1] : value;
       npu.setChild(npu.data, ["users", domain, user, "data"].concat(key), value);
     },
-    
+
     /* Upgrade the data schema to the latest version */
     upgradeSchema: function() {
       var ver = typeof npu.data.version != "undefined" ? npu.data.version : 0;
-      
+
       /* < 1.3 */
       if(ver < 1) {
         try {
@@ -148,12 +148,12 @@ var npu = {
         }
         npu.data.version = 1;
       }
-      
+
       npu.saveData();
     },
-  
+
   /* == LOGIN == */
-  
+
     /* Returns users with stored credentials */
     getLoginUsers: function() {
       var users = [], list = npu.getChild(npu.data, ["users", npu.domain]);
@@ -164,39 +164,39 @@ var npu = {
       }
       return users;
     },
-  
+
     /* Load and display user select field */
     initUserSelect: function() {
       var users = npu.getLoginUsers();
 
       $(".login_left_side .login_input").css("text-align", "left");
-      
+
       var selectField = $('<select id="user_sel" class="bevitelimezo" name="user_sel"></select>').hide();
       for(var i = 0; i < users.length; i++) {
         selectField.append('<option id="' + users[i] + '" value="' + users[i] + '" class="neptun_kod">' + users[i] + '</option>');
       }
-      
+
       selectField.append('<option disabled="disabled" class="user_separator">&nbsp;</option>');
 
       selectField.append('<option id="other_user" value="__OTHER__">Más felhasználó...</option>');
       selectField.append('<option id="edit_list" value="__DELETE__">Tárolt kód törlése...</option>');
-      
+
       $("td", selectField).css("position", "relative");
       selectField.css("font-weight", "bold").css("font-family", "consolas, courier new, courier, monospace").css("font-size", "1.5em");
       $("option[class!=neptun_kod]", selectField).css("font-size", "0.8em").css("font-family", "tahoma").css("font-weight", "normal").css("color", "#666").css("font-style", "italic");
       $("option.user_separator", selectField).css("font-size", "0.5em");
-      
+
       selectField.bind("mousedown focus change", function() { npu.abortLogin() });
       $("#pwd, #Submit, #btnSubmit").bind("mousedown focus change", function() { npu.abortLogin() });
-      
+
       selectField.bind("change", function() {
         npu.clearLogin();
-        
+
         if($(this).val() == "__OTHER__") {
           npu.hideSelect();
           return false;
         }
-        
+
         if($(this).val() == "__DELETE__") {
           $("#user_sel").val(users[0]).trigger("change");
           var defaultString = "mindegyiket";
@@ -207,7 +207,7 @@ var npu = {
           if(itemToDelete == "" || itemToDelete == null) {
             return false;
           }
-          
+
           var deleted = false;
           for(var i = 0; i < users.length; i++) {
             if(users[i] == itemToDelete.toUpperCase() || itemToDelete.toUpperCase() == "MINDEGYIKET") {
@@ -215,46 +215,46 @@ var npu = {
               deleted = true;
             }
           }
-          
+
           if(!deleted) {
             if(confirm("A megadott neptun kód nincs benne a tárolt listában. Megpróbálod újra?")) {
               $("#user_sel").val("__DELETE__").trigger("change");
             }
             return false;
           }
-          
+
           npu.saveData();
-          
+
           if(itemToDelete.toUpperCase() == "MINDEGYIKET") {
             alert("Az összes tárolt neptun kód törölve lett a bejelentkezési listából.");
             window.location.reload();
             return false;
           }
-          
+
           alert("A(z) " + itemToDelete + " felhasználó törölve lett a bejelentkezési listából.");
           window.location.reload();
           return false;
         }
-        
+
         $("#user").val(users[$(this).get(0).selectedIndex]);
         $("#pwd").val(npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$(this).get(0).selectedIndex], "password"])));
       });
-      
+
       $("input[type=button].login_button").attr("onclick", "").bind("click", function(e) {
         e.preventDefault();
-        
+
         if($("#user_sel").val() == "__OTHER__") {
           if($("#user").val().trim() == "" || $("#pwd").val().trim() == "") {
             return;
           }
-          
+
           var foundID = -1;
           for(var i = 0; i < users.length; i++) {
             if(users[i] == $("#user").val().toUpperCase()) {
               foundID = i;
             }
           }
-          
+
           if(foundID == -1) {
             if(confirm("Szeretnéd menteni a beírt adatokat, hogy később egy kattintással be tudj lépni erről a számítógépről?")) {
               npu.setChild(npu.data, ["users", npu.domain, $("#user").val().toUpperCase(), "password"], npu.encodeBase64($("#pwd").val()));
@@ -267,51 +267,51 @@ var npu = {
             $("#user_sel").val(users[foundID]);
           }
         }
-        
+
         if($("#user_sel").val() == "__DELETE__") {
           return;
         }
-        
+
         if($("#pwd").val() != npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"]))) {
           if(confirm("Szeretnéd megváltoztatni a(z) " + $("#user").val().toUpperCase() + " felhasználó tárolt jelszavát a most beírt jelszóra?")) {
             npu.setChild(npu.data, ["users", npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"], npu.encodeBase64($("#pwd").val()));
             npu.saveData();
           }
         }
-        
+
         npu.submitLogin();
         return;
       });
-      
+
       $("#user").parent().append(selectField);
       npu.showSelect();
       selectField.trigger("change");
     },
-    
+
     /* Initialize auto login and start countdown */
     initAutoLogin: function() {
       var users = npu.getLoginUsers();
-      
+
       if(users.length < 1) {
         return;
       }
-      
+
       var submit = $("#Submit, #btnSubmit");
-      
+
       npu.loginCount = 3;
       npu.loginButton = submit.attr("value");
       submit.attr("value", npu.loginButton + " (" + npu.loginCount + ")");
-      
+
       $(".login_button_td").append('<div id="abortLogin" style="text-align: center; margin: 23px 0 0 128px"><a href="#" class="abort_login">Megszakít</a></div>');
       $(".login_button_td a.abort_login").click(function(e) {
         e.preventDefault();
         npu.abortLogin();
       });
-      
+
       npu.loginTimer = window.setInterval(function() {
         npu.loginCount--;
         submit.attr("value", npu.loginButton + " (" + npu.loginCount + ")");
-        
+
         if(npu.loginCount <= 0) {
           npu.submitLogin();
           npu.abortLogin();
@@ -319,39 +319,39 @@ var npu = {
         }
       }, 1000);
     },
-    
+
     /* Abort the auto login countdown */
     abortLogin: function() {
       window.clearInterval(npu.loginTimer);
       $("#Submit, #btnSubmit").attr("value", npu.loginButton);
       $("#abortLogin").remove();
     },
-    
+
     /* Clears the login form */
     clearLogin: function() {
       $("#user").val("");
       $("#pwd").val("");
     },
-    
+
     /* Display user select field */
     showSelect: function() {
       $("#user").hide();
       $("#user_sel").show().focus();
       npu.runEval(' Page_Validators[0].controltovalidate = "user_sel" ');
     },
-    
+
     /* Hide user select field and display original textbox */
     hideSelect: function() {
       $("#user_sel").hide();
       $("#user").show().focus();
       npu.runEval(' Page_Validators[0].controltovalidate = "user" ');
     },
-    
+
     /* Submit the login form */
     submitLogin: function() {
       unsafeWindow.docheck();
     },
-    
+
     /* Reconfigure server full wait dialog parameters */
     fixWaitDialog: function() {
       unsafeWindow.maxtrynumber = 1e6;
@@ -362,9 +362,9 @@ var npu = {
       exportFunction(timerFunction, unsafeWindow, {defineAs: "npu_starttimer"});
       unsafeWindow.starttimer = unsafeWindow.npu_starttimer;
     },
-    
+
   /* == MAIN == */
-  
+
     /* Hide page header to save vertical space */
     hideHeader: function() {
       $("#panHeader, #panCloseHeader").hide();
@@ -372,7 +372,7 @@ var npu = {
       $("#form1 > fieldset").css("border", "0 none");
       $("#span_changeproject").parent().hide();
     },
-    
+
     /* Add current page name to the window title */
     fixTitle: function() {
       var originalTitle = document.title;
@@ -383,11 +383,11 @@ var npu = {
         }
       }, 1000);
     },
-    
+
     /* Fix opening in new tab and add shortcuts */
     fixMenu: function() {
       var color = $("#lbtnQuit").css("color");
-      
+
       $(
         '<style type="text/css"> ' +
           'ul.menubar, ' +
@@ -409,22 +409,22 @@ var npu = {
           '} ' +
         '</style>'
       ).appendTo("head");
-      
+
       $("#mb1_Tanulmanyok").attr("targeturl", "main.aspx?ctrl=0206&ismenuclick=true").attr("hoverid", "#mb1_Tanulmanyok_Leckekonyv");
       $("#mb1_Targyak").attr("targeturl", "main.aspx?ctrl=0303&ismenuclick=true").attr("hoverid", "#mb1_Targyak_Targyfelvetel");
       $("#mb1_Vizsgak").attr("targeturl", "main.aspx?ctrl=0401&ismenuclick=true").attr("hoverid", "#mb1_Vizsgak_Vizsgajelentkezes");
-      
+
       var orarend = $('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_Orarend" targeturl="main.aspx?ctrl=0203&amp;ismenuclick=true">Órarend</li>');
       $("#mb1_Targyak").before(orarend);
       $("#mb1_Tanulmanyok_Órarend").remove();
-      
+
       if(!$("#upChooser_chooser_kollab").hasClass("KollabChooserSelected")) {
         $('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_MeetStreet" targeturl="javascript:__doPostBack(\'upChooser$btnKollab\',\'\')">Meet Street</li>').appendTo("#mb1");
       }
       if(!$("#upChooser_chooser_neptun").hasClass("NeptunChooserSelected")) {
         $('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_TanulmanyiRendszer" targeturl="javascript:__doPostBack(\'upChooser$btnNeptun\',\'\')">Neptun</li>').appendTo("#mb1");
       }
-      
+
       $("#mb1 li[targeturl]").css("position", "relative").each(function() {
         $(this).addClass("has-target");
         var a = $('<a href="' + $(this).attr("targeturl") + '" style="display: block; position: absolute; left: 0; top: 0; width: 100%; height: 100%"></a>');
@@ -439,7 +439,7 @@ var npu = {
         $(this).append(a);
       });
     },
-    
+
     /* Replace term drop-down list with buttons */
     fixTermSelect: function() {
       $(
@@ -470,7 +470,7 @@ var npu = {
           '} ' +
         '</style>'
       ).appendTo("head");
-      
+
       var findTermSelect = function() {
         return $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal, #cmbTerms_cmb").first();
       };
@@ -496,7 +496,7 @@ var npu = {
         }
         return true;
       };
-      
+
       window.setInterval(function() {
         var termSelect = findTermSelect();
         if(termSelect.is(":disabled")) {
@@ -509,7 +509,7 @@ var npu = {
           var found = false;
           var match = $("#lblTrainingName").text().match(/:(\d{4}\/\d{2}\/\d)\[.*?\]\)/);
           var admissionSemester = match && String(match[1]);
-          
+
           $("option", termSelect).each(function() {
             if($(this).attr("value") == "-1") { return; }
             if(admissionSemester && $(this).text() < admissionSemester) { return; }
@@ -546,7 +546,7 @@ var npu = {
         }
       }, 500);
     },
-    
+
     /* Set all paginators to 500 items per page */
     fixPagination: function() {
       window.setInterval(function() {
@@ -565,7 +565,7 @@ var npu = {
         });
       }, 100);
     },
-    
+
     /* Hide countdown and send requests to the server to keep the session alive */
     initKeepSession: function() {
       var cdt = $("#hfCountDownTime");
@@ -585,7 +585,7 @@ var npu = {
         }, timeout * 1000 - 30000 - Math.floor(Math.random() * 30000));
       };
       keepAlive();
-      
+
       window.setInterval(function() {
         npu.runEval(function() {
           ShowModal = function() { };
@@ -598,7 +598,7 @@ var npu = {
         }
       }, 1000);
     },
-    
+
     /* Use custom loading indicator for async requests */
     initProgressIndicator: function() {
       var color = $("#lbtnQuit").css("color");
@@ -631,10 +631,10 @@ var npu = {
           '} ' +
         '</style>'
       ).appendTo("head");
-      
+
       $("#progress, #customtextprogress").css("visibility", "hidden");
       $('<div id="npu_loading">Kis türelmet...</div>').appendTo("body");
-      
+
       npu.runEval(function() {
         var manager = Sys.WebForms.PageRequestManager.getInstance();
         manager.add_beginRequest(function(a, b) {
@@ -645,9 +645,9 @@ var npu = {
         });
       });
     },
-    
+
   /* == TIMETABLE == */
-  
+
     /* Enhance timetable functionality */
     fixTimetable: function() {
       window.setInterval(function() {
@@ -669,9 +669,9 @@ var npu = {
         }
       }, 100);
     },
-    
+
   /* == MARK LIST == */
-  
+
     /* Enhance mark list style */
     fixMarkList: function() {
       $(
@@ -685,7 +685,7 @@ var npu = {
     },
 
   /* == PROGRESS LIST == */
-    
+
     /* Enhance progress list style */
     fixProgressList: function() {
       $(
@@ -713,9 +713,9 @@ var npu = {
         '</style>'
       ).appendTo("head");
     },
-    
+
   /* == COURSE LIST == */
-    
+
     /* Enhance course list style and functionality */
     fixCourseList: function() {
       $(
@@ -750,7 +750,7 @@ var npu = {
           '} ' +
         '</style>'
       ).appendTo("head");
-      
+
       $("body").on("click", "#Addsubject_course1_gridCourses_bodytable tbody td, #Addsubject_course1_gridCourses_grid_body_div tbody td", function(e) {
         if($(e.target).closest("input[type=checkbox]").size() == 0 && $(e.target).closest("td[onclick]").size() == 0) {
           var checkbox = $("input[type=checkbox]", $(this).closest("tr")).get(0);
@@ -761,7 +761,7 @@ var npu = {
           return false;
         }
       });
-      
+
       $("body").on("click", "#h_addsubjects_gridSubjects_bodytable tbody td", function(e) {
         if($(e.target).closest("td[onclick], span.link").size() == 0 && $(e.target).closest("td.contextcell_sel, td.contextcell").size() == 0) {
           npu.runEval($("td span.link", $(this).closest("tr")).attr("onclick"));
@@ -769,7 +769,7 @@ var npu = {
           return false;
         }
       });
-      
+
       window.setInterval(function() {
         var table = $("#h_addsubjects_gridSubjects_bodytable");
         if(table.attr("data-painted") != "1") {
@@ -782,7 +782,7 @@ var npu = {
         }
       }, 250);
     },
-    
+
     /* Automatically press submit button on course list page */
     initCourseAutoList: function() {
       npu.runEval(function() {
@@ -800,15 +800,15 @@ var npu = {
           }
         }, 250);
       });
-      
+
       var updateTable = function() {
         $("#upFunction_h_addsubjects_upGrid").html("");
       };
-      
+
       $("body").on("change", "#upFilter_chkFilterCourses", updateTable);
       $("body").on("change", "#upFilter_rbtnSubjectType input[type=radio]", updateTable);
     },
-    
+
     /* Initialize course choice storage and mark subject and course lines with stored course choices */
     initCourseStore: function() {
       $(
@@ -821,22 +821,22 @@ var npu = {
           '} ' +
         '</style>'
       ).appendTo("head");
-      
+
       var loadCourses = function() {
         courses = { };
         $.extend(courses, npu.getUserData(null, null, ["courses", "_legacy"]));
         $.extend(courses, npu.getUserData(null, null, ["courses", npu.training]));
       };
-      
+
       var refreshScreen = function() {
         $("#h_addsubjects_gridSubjects_bodytable").attr("data-choices-displayed", "0");
         $("#Addsubject_course1_gridCourses_bodytable").attr("data-inner-choices-displayed", "0");
         $("#Addsubject_course1_gridCourses_grid_body_div").attr("data-inner-choices-displayed", "0");
       };
-      
+
       var courses = null;
       loadCourses();
-      
+
       window.setInterval(function() {
         var table = $("#h_addsubjects_gridSubjects_bodytable");
         if(table.size() > 0 && table.attr("data-choices-displayed") != "1") {
@@ -854,7 +854,7 @@ var npu = {
               $(this).css("display", filterEnabled ? "none" : "table-row");
             }
           });
-          
+
           var pager = $("#h_addsubjects_gridSubjects_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
           if($("#npu_clear_courses").size() == 0) {
             var clearAll = $('<td id="npu_clear_courses"><a style="color: #C00; line-height: 17px; margin-right: 30px" href="">Tárolt kurzusok törlése</a></td>');
@@ -882,7 +882,7 @@ var npu = {
           }
           $("#npu_filter_field").get(0).checked = filterEnabled;
         }
-        
+
         var innerTable = $("#Addsubject_course1_gridCourses_bodytable:visible, #Addsubject_course1_gridCourses_grid_body_div:visible").first();
         if(innerTable.size() > 0 && innerTable.attr("data-inner-choices-displayed") != "1") {
           innerTable.attr("data-inner-choices-displayed", "1");
@@ -981,9 +981,9 @@ var npu = {
         }
       }, 500);
     },
-    
+
   /* == EXAM LIST == */
-  
+
     /* Decide whether the given grade string constitutes passing the exam */
     isPassingGrade: function(gradeStr) {
       return ["Elégtelen", "Nem felelt meg", "Nem jelent meg", "Fail", "Did not attend"].indexOf(gradeStr) == -1;
@@ -1042,7 +1042,7 @@ var npu = {
           '} ' +
         '</style>'
       ).appendTo("head");
-      
+
       $("body").on("click", "#h_exams_gridExamList_bodytable tbody td", function(e) {
         if($(e.target).closest("td[onclick], td.contextcell_sel, td.contextcell").size() == 0) {
           npu.runEval(function() {
@@ -1052,14 +1052,14 @@ var npu = {
           return false;
         }
       });
-      
+
       window.setInterval(function() {
         var table = $("#h_exams_gridExamList_bodytable");
         var filterEnabled = npu.getUserData(null, null, "filterExams");
-        
+
         if(table.attr("data-processed") != "1") {
           table.attr("data-processed", "1");
-          
+
           $("tbody tr[id*=tr__]", table).each(function() {
             var row = $(this);
             var courseCode = $("td:nth-child(3)", row).clone().children().remove().end().text();
@@ -1069,12 +1069,12 @@ var npu = {
             var subscribed = row.hasClass("gridrow_blue");
             var classToBeAdded = null;
             row.add(markRows).removeClass("npu_completed npu_failed").removeAttr("data-completed");
-            
+
             markRows.each(function() {
               var mark = $("td:nth-child(4)", this).text().trim();
               $(this).addClass(npu.isPassingGrade(mark) ? "npu_completed" : "npu_failed");
             });
-            
+
             if(markRows.size() > 0) {
               var lastMark = markRows.last();
               var mark = $("td:nth-child(4)", lastMark).text().trim();
@@ -1085,16 +1085,16 @@ var npu = {
                 row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
               }
             }
-            
+
             classToBeAdded = classToBeAdded || (subscribed ? "npu_subscribed" : "npu_found");
             row.addClass(classToBeAdded);
-            
+
             if(!$("#upFilter_cmbSubjects").val() || $("#upFilter_cmbSubjects").val() === "0") {
               $.examSubjectFilterCache = $.examSubjectFilterCache || {};
               $.examSubjectFilterCache[courseCode] = classToBeAdded;
             }
           });
-          
+
           if($.examSubjectFilterCache) {
             $("#upFilter_cmbSubjects > option").each(function() {
               $(this).removeClass("npu_hidden npu_completed npu_failed npu_subscribed npu_found");
@@ -1107,7 +1107,7 @@ var npu = {
           }
         }
       }, 250);
-      
+
       var refreshScreen = function() {
         $("#h_exams_gridExamList_bodytable").removeAttr("data-processed");
       }
@@ -1129,7 +1129,7 @@ var npu = {
         $("#npu_filter_field").get(0).checked = filterEnabled;
       }, 500);
     },
-    
+
     /* Automatically list exams on page load and subject change */
     initExamAutoList: function() {
       $('<style type="text/css"> #upFilter_bodytable tr.nostyle { display: none } </style>').appendTo("head");
@@ -1140,7 +1140,7 @@ var npu = {
         var panel = $("#upFilter_panFilter table.searchpanel");
         var termChanged = $.examListTerm != $("#upFilter_cmbTerms option[selected]").attr("value");
         var subjectChanged = $.examListSubject != $.examListSubjectValue;
-        
+
         if(panel.attr("data-listing") != "1" && (termChanged || subjectChanged)) {
           panel.attr("data-listing", "1");
           if(termChanged) {
@@ -1177,13 +1177,13 @@ var npu = {
           '} ' +
         '</style>'
       ).appendTo("head");
-      
+
       window.setInterval(function() {
         var table = $("#h_signedexams_gridExamList_bodytable");
-        
+
         if(table.attr("data-processed") != "1") {
           table.attr("data-processed", "1");
-          
+
           $("tbody tr:not(.NoMatch)", table).each(function() {
             var row = $(this);
             row.removeClass("npu_completed npu_failed npu_missed");
@@ -1196,10 +1196,10 @@ var npu = {
     },
 
   /* == STATISTICS == */
-  
+
     /* Statistics server URL */
     statHost: "http://npu.herokuapp.com/stat",
-    
+
     /* Initialize statistics */
     initStat: function() {
       var code = npu.getUserData(null, null, ["statCode"]);
@@ -1231,21 +1231,21 @@ var npu = {
         catch(e) { }
       }, 5000);
     },
-  
+
   /* == MISC == */
-    
+
     /* Verify that we are indeed on a Neptun page */
     isNeptunPage: function() {
       return document.title.indexOf("Neptun.Net") != -1;
     },
-    
+
     /* Initialize and cache parameters that do not change dynamically */
     initParameters: function() {
       npu.user = npu.getUser();
       npu.domain = npu.getDomain();
       npu.training = npu.getTraining();
     },
-  
+
     /* Parses and returns the first-level domain of the site */
     getDomain: function() {
       var domain = "", host = location.host.split(".");
@@ -1257,7 +1257,7 @@ var npu = {
         }
       }
     },
-    
+
     /* Parses and returns the ID of the current user */
     getUser: function() {
       if($("#upTraining_topname").size() > 0) {
@@ -1265,19 +1265,19 @@ var npu = {
         return input.substring(input.indexOf(" - ") + 3).toUpperCase();
       }
     },
-    
+
     /* Parses and returns the sanitized name of the current training */
     getTraining: function() {
       if($("#lblTrainingName").size() > 0) {
         return $("#lblTrainingName").text().replace(/[^a-zA-Z0-9]/g, "");
       }
     },
-    
+
     /* Returns whether we are on the login page */
     isLogin: function() {
       return $("td.login_left_side").size() > 0;
     },
-    
+
     /* Returns the ID of the current page */
     getPage: function() {
       var result = (/ctrl=([a-zA-Z0-9_]+)/g).exec(window.location.href);
@@ -1293,17 +1293,17 @@ var npu = {
       var ajaxGrid = $(element).closest("div[type=ajaxgrid]");
       return ajaxGrid.size() > 0 && ajaxGrid.first().attr("instanceid");
     },
-    
+
     /* Returns whether the specified ID is the current page */
     isPage: function(ctrl) {
       return (window.location.href.indexOf("ctrl=" + ctrl) != -1);
     },
-    
+
     /* Runs a function asynchronously to fix problems in certain cases */
     runAsync: function(func) {
       window.setTimeout(func, 0);
     },
-    
+
     /* Evaluates code in the page context */
     runEval: function(source) {
       if ("function" == typeof source) {
@@ -1315,7 +1315,7 @@ var npu = {
       document.body.appendChild(script);
       document.body.removeChild(script);
     },
-    
+
     /* Returns the child object at the provided path */
     getChild: function(o, s) {
       while(s.length) {
@@ -1327,7 +1327,7 @@ var npu = {
       }
       return o;
     },
-    
+
     /* Set the child object at the provided path */
     setChild: function(o, s, v) {
       while(s.length) {
@@ -1347,7 +1347,7 @@ var npu = {
         o = o[n];
       }
     },
-    
+
     /* Parses a subject code that is in parentheses at the end of a string */
     parseSubjectCode: function(str) {
       str = str.trim();
@@ -1364,7 +1364,7 @@ var npu = {
       }
       return null;
     },
-    
+
     /* Generates a random token */
     generateToken: function() {
       var text = "", possible = "0123456789abcdef";
@@ -1373,7 +1373,7 @@ var npu = {
       }
       return text;
     },
-    
+
     /* Encodes a string into base64 */
     encodeBase64: function(data) {
       var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -1391,7 +1391,7 @@ var npu = {
       var r = data.length % 3;
       return (r ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
     },
-    
+
     /* Decodes a string from base64 */
     decodeBase64: function(data) {
       var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";

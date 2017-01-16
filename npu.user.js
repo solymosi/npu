@@ -475,7 +475,7 @@ var npu = {
         return $("#upFilter_cmbTerms, #upFilter_cmb_m_cmb, #cmbTermsNormal, #upFilter_cmbTerms_m_cmb, #cmb_cmb, #c_common_timetable_cmbTermsNormal, #cmbTerms_cmb").first();
       };
       var clickExecuteButton = function() {
-        if(["0303", "h_addsubjects", "0401", "h_exams", "0503", "h_transactionlist"].indexOf(npu.getPage()) != -1) {
+        if(["0303", "h_addsubjects", "0401", "h_exams", "0503", "h_transactionlist", "1406", "h_grading_request"].indexOf(npu.getPage()) != -1) {
           return;
         }
         npu.runEval(function() {

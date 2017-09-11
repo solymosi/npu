@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.50.1
+// @version        1.51
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -41,6 +41,7 @@ var npu = {
         this.fixMenu();
         this.fixTermSelect();
         this.fixPagination();
+        this.fixOfficialMessagePopup();
         this.initKeepSession();
         this.initProgressIndicator();
 
@@ -564,6 +565,29 @@ var npu = {
           }
         });
       }, 100);
+    },
+
+    /* Allow user to dismiss the 'you have an official message' popup */
+    fixOfficialMessagePopup: function() {
+      var dismiss = function() {
+        $("[aria-describedby=upRequiredMessageReader_upmodal_RequiredMessageReader_divpopup] .ui-dialog-content").dialog("close");
+      };
+
+      window.setInterval(function() {
+        var messagePopup = $("#upRequiredMessageReader_upmodal_RequiredMessageReader_divpopup:visible").closest(".ui-dialog");
+        if(messagePopup.size() > 0 && $("#upFunction_c_messages_upMain_upGrid").size() === 0) {
+          npu.runEval(dismiss);
+        }
+        if(messagePopup.size() > 0 && messagePopup.is(":not([data-npu-enhanced])")) {
+          messagePopup.attr("data-npu-enhanced", "true");
+          $("input[commandname=Tovabb]", messagePopup).val("Elolvasom");
+          var dismissBtn = $('<input value="Most nem érdekel" class="npu_dismiss ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" type="button">');
+          dismissBtn.click(function() {
+            npu.runEval(dismiss);
+          });
+          $(".ui-dialog-footerbar > div", messagePopup).append(dismissBtn);
+        }
+      }, 200);
     },
 
     /* Hide countdown and send requests to the server to keep the session alive */

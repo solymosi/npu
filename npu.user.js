@@ -2,21 +2,21 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.51.2
+// @version        1.52
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
 // @include        https://nappw.dfad.duf.hu/hallgato/*
 // @include        https://host.sdakft.hu/*
 // @include        https://neptun.ejf.hu/ejfhw/*
-// @grant          GM_xmlhttpRequest
 // @grant          GM.xmlhttpRequest
-// @grant          GM_getValue
+// @grant          GM_xmlhttpRequest
 // @grant          GM.getValue
-// @grant          GM_setValue
+// @grant          GM_getValue
 // @grant          GM.setValue
-// @grant          GM_info
+// @grant          GM_setValue
 // @grant          GM.info
+// @grant          GM_info
 // @require        https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js
 // @connect        npu.herokuapp.com
@@ -27,13 +27,13 @@ var npu = {
   /* == STARTUP == */
 
     /* Run features */
-    init: function() {
+    init: async function() {
       if(!this.isNeptunPage()) {
         return;
       }
 
       this.initParameters();
-      this.initStorage();
+      await this.loadData();
 
       if(this.isLogin()) {
         this.initUserSelect();
@@ -86,24 +86,19 @@ var npu = {
     /* Stored data */
     data: { },
 
-    /* Initialize the storage module */
-    initStorage: function() {
-      npu.loadData();
-    },
-
     /* Load all data from local storage */
-    loadData: function() {
+    loadData: async function() {
       try {
-        npu.data = JSON.parse(GM_getValue("data")) || {};
+        npu.data = JSON.parse(await GM.getValue("data")) || {};
       }
       catch(e) { }
-      npu.upgradeSchema();
+      await npu.upgradeSchema();
     },
 
     /* Save all data to local storage */
     saveData: function() {
       this.runAsync(function() {
-        GM_setValue("data", JSON.stringify(npu.data));
+        GM.setValue("data", JSON.stringify(npu.data));
       });
     },
 
@@ -127,13 +122,13 @@ var npu = {
     },
 
     /* Upgrade the data schema to the latest version */
-    upgradeSchema: function() {
+    upgradeSchema: async function() {
       var ver = typeof npu.data.version != "undefined" ? npu.data.version : 0;
 
       /* < 1.3 */
       if(ver < 1) {
         try {
-          var users = JSON.parse(GM_getValue("neptun.users"));
+          var users = JSON.parse(await GM.getValue("neptun.users"));
         }
         catch(e) { }
         if(users != null && typeof users.length != "undefined") {
@@ -142,7 +137,7 @@ var npu = {
           }
         }
         try {
-          var courses = JSON.parse(GM_getValue("neptun.courses"));
+          var courses = JSON.parse(await GM.getValue("neptun.courses"));
         }
         catch(e) { }
         if(typeof courses == "object") {
@@ -623,7 +618,7 @@ var npu = {
           sessionEndDate = null;
         });
         if($("#npuStatus").size() == 0) {
-          $("#upTraining_lblRemainingTime").html('<span id="npuStatus" style="font-weight: normal"><a href="https://npu.herokuapp.com" target="_blank">Neptun PowerUp!</a> v' + GM_info["script"]["version"] + '</span>');
+          $("#upTraining_lblRemainingTime").html('<span id="npuStatus" style="font-weight: normal"><a href="https://npu.herokuapp.com" target="_blank">Neptun PowerUp!</a> v' + GM.info.script.version + '</span>');
         }
       }, 1000);
     },
@@ -1246,10 +1241,10 @@ var npu = {
       setTimeout(function() {
         try {
           var h = new npu.jsSHA(npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
-          GM_xmlhttpRequest({
+          GM.xmlhttpRequest({
             method: "POST",
             data: $.param({
-              version: GM_info["script"]["version"],
+              version: GM.info.script.version,
               domain: npu.domain,
               user: h.substring(0, 32),
               uri: window.location.href

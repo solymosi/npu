@@ -9,7 +9,7 @@
 // @include        https://nappw.dfad.duf.hu/hallgato/*
 // @include        https://host.sdakft.hu/*
 // @include        https://neptun.ejf.hu/ejfhw/*
-// @grant          GM.xmlhttpRequest
+// @grant          GM.xmlHttpRequest
 // @grant          GM_xmlhttpRequest
 // @grant          GM.getValue
 // @grant          GM_getValue
@@ -1240,7 +1240,7 @@
         setTimeout(function() {
           try {
             var h = new npu.jsSHA(npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
-            GM.xmlhttpRequest({
+            GM.xmlHttpRequest({
               method: "POST",
               data: $.param({
                 version: GM.info.script.version,

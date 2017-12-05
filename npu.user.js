@@ -1016,7 +1016,7 @@
 
     /* == EXAM LIST == */
 
-      /* Decide whether the given grade string constitutes passing the exam */
+      /* Returns if the given string stands for a passing grade */
       isPassingGrade: function(str) {
         return [
           "jeles",               "excellent",
@@ -1027,7 +1027,8 @@
           "megfelelt",           "average",
         ].indexOf(str.trim().toLowerCase()) !== -1;
       },
-      
+
+      /* Returns if the given string stands for a failing grade */
       isFailingGrade: function(str) {
         return [
           "elégtelen",           "fail",

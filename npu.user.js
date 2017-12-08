@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.52
+// @version        1.52.1
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -1016,9 +1016,26 @@
 
     /* == EXAM LIST == */
 
-      /* Decide whether the given grade string constitutes passing the exam */
-      isPassingGrade: function(gradeStr) {
-        return ["Elégtelen", "Nem felelt meg", "Nem jelent meg", "Fail", "Did not attend"].indexOf(gradeStr) == -1;
+      /* Returns if the given string stands for a passing grade */
+      isPassingGrade: function(str) {
+        return [
+          "jeles",               "excellent",
+          "jó",                  "good",
+          "közepes",             "satisfactory",
+          "elégséges",           "pass",
+          "kiválóan megfelelt",  "excellent",
+          "megfelelt",           "average",
+        ].indexOf(str.trim().toLowerCase()) !== -1;
+      },
+
+      /* Returns if the given string stands for a failing grade */
+      isFailingGrade: function(str) {
+        return [
+          "elégtelen",           "fail",
+          "nem felelt meg",      "unsatisfactory",
+          "nem jelent meg",      "did not attend",
+          "nem vizsgázott",      "did not attend",
+        ].indexOf(str.trim().toLowerCase()) !== -1;
       },
 
       /* Enhance exam list style and functionality */
@@ -1098,32 +1115,37 @@
               var rowId = row.attr("id").replace(/^tr__/, "");
               var subRow = $("#trs__" + rowId, row.closest("tbody"));
               var markRows = $(".subtable > tbody > tr", subRow);
+
+              row.add(markRows).removeClass("npu_completed npu_failed");
+
               var subscribed = row.hasClass("gridrow_blue");
-              var classToBeAdded = null;
-              row.add(markRows).removeClass("npu_completed npu_failed").removeAttr("data-completed");
+              var rowClass = null;
 
               markRows.each(function() {
-                var mark = $("td:nth-child(4)", this).text().trim();
-                $(this).addClass(npu.isPassingGrade(mark) ? "npu_completed" : "npu_failed");
+                var grade = $("td:nth-child(4)", this).text().trim();
+                npu.isPassingGrade(grade) && $(this).addClass("npu_completed");
+                npu.isFailingGrade(grade) && $(this).addClass("npu_failed");
               });
 
               if(markRows.size() > 0) {
                 var lastMark = markRows.last();
-                var mark = $("td:nth-child(4)", lastMark).text().trim();
-                var passed = npu.isPassingGrade(mark);
-                !subscribed && (classToBeAdded = passed ? "npu_completed" : "npu_failed");
-                if(passed) {
-                  row.attr("data-completed", "1");
-                  row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+                var grade = $("td:nth-child(4)", lastMark).text().trim();
+
+                if(!subscribed) {
+                  rowClass = rowClass || (npu.isPassingGrade(grade) && "npu_completed");
+                  rowClass = rowClass || (npu.isFailingGrade(grade) && "npu_failed");
                 }
+
+                npu.isPassingGrade(grade) &&
+                  row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
               }
 
-              classToBeAdded = classToBeAdded || (subscribed ? "npu_subscribed" : "npu_found");
-              row.addClass(classToBeAdded);
+              rowClass = rowClass || (subscribed ? "npu_subscribed" : "npu_found");
+              row.addClass(rowClass);
 
               if(!$("#upFilter_cmbSubjects").val() || $("#upFilter_cmbSubjects").val() === "0") {
                 $.examSubjectFilterCache = $.examSubjectFilterCache || {};
-                $.examSubjectFilterCache[courseCode] = classToBeAdded;
+                $.examSubjectFilterCache[courseCode] = rowClass;
               }
             });
 
@@ -1131,10 +1153,10 @@
               $("#upFilter_cmbSubjects > option").each(function() {
                 $(this).removeClass("npu_hidden npu_completed npu_failed npu_subscribed npu_found");
                 var subjectCode = npu.parseSubjectCode($(this).text().trim());
-                var classToBeAdded = $.examSubjectFilterCache[subjectCode];
+                var rowClass = $.examSubjectFilterCache[subjectCode];
                 var filterEnabled = npu.getUserData(null, null, "filterExams");
-                subjectCode && $(this).addClass(classToBeAdded || "npu_hidden");
-                filterEnabled && classToBeAdded === "npu_completed" && $(this).addClass("npu_hidden");
+                subjectCode && $(this).addClass(rowClass || "npu_hidden");
+                filterEnabled && rowClass === "npu_completed" && $(this).addClass("npu_hidden");
               });
             }
           }
@@ -1216,8 +1238,15 @@
               var row = $(this);
               row.removeClass("npu_completed npu_failed npu_missed");
               var attended = $("td[n=Attended]", row)[0].attributes["checked"].value == "true";
-              var passed = npu.isPassingGrade($("td:nth-child(13)", row).text().trim());
-              row.addClass(attended ? (passed ? "npu_completed" : "npu_failed") : "npu_missed");
+              var grade = $("td:nth-child(13)", row).text().trim();
+
+              if(attended) {
+                npu.isPassingGrade(grade) && row.addClass("npu_completed");
+                npu.isFailingGrade(grade) && row.addClass("npu_failed");
+              }
+              else {
+                row.addClass("npu_missed");
+              }
             });
           }
         }, 250);

@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.52.1
+// @version        1.52.2
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -1044,7 +1044,7 @@
           '<style type="text/css"> ' +
             '#h_exams_gridExamList_bodytable tr.gridrow_blue td ' +
             '{ ' +
-              'background: #F8EFB1 !important; ' +
+              'background-color: #F8EFB1 !important; ' +
               'font-weight: bold; ' +
               'color: #525659 !important; ' +
             '} ' +
@@ -1102,6 +1102,15 @@
           }
         });
 
+        /* Exam classes listed from most important to least important */
+        var classPrecedence = ["npu_subscribed", "npu_failed", "npu_completed", "npu_regular"].reverse();
+
+        /* Selects the class with the higher precedence from the two provided classes */
+        var selectImportantClass = function(one, two) {
+          /* Invalid classes have an index of -1 so they are never selected in favor of a valid one */
+          return classPrecedence.indexOf(one) > classPrecedence.indexOf(two) ? one : two;
+        };
+
         window.setInterval(function() {
           var table = $("#h_exams_gridExamList_bodytable");
           var filterEnabled = npu.getUserData(null, null, "filterExams");
@@ -1116,10 +1125,7 @@
               var subRow = $("#trs__" + rowId, row.closest("tbody"));
               var markRows = $(".subtable > tbody > tr", subRow);
 
-              row.add(markRows).removeClass("npu_completed npu_failed");
-
-              var subscribed = row.hasClass("gridrow_blue");
-              var rowClass = null;
+              row.add(markRows).removeClass(classPrecedence.join(" "));
 
               markRows.each(function() {
                 var grade = $("td:nth-child(4)", this).text().trim();
@@ -1127,31 +1133,31 @@
                 npu.isFailingGrade(grade) && $(this).addClass("npu_failed");
               });
 
+              var rowClass = row.hasClass("gridrow_blue") ? "npu_subscribed" : "npu_regular";
+
               if(markRows.size() > 0) {
                 var lastMark = markRows.last();
                 var grade = $("td:nth-child(4)", lastMark).text().trim();
-
-                if(!subscribed) {
-                  rowClass = rowClass || (npu.isPassingGrade(grade) && "npu_completed");
-                  rowClass = rowClass || (npu.isFailingGrade(grade) && "npu_failed");
-                }
-
-                npu.isPassingGrade(grade) &&
-                  row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+                /* The class 'npu_subscribed' has a higher precedence than these, so it will not get overwritten */
+                rowClass = selectImportantClass(rowClass, npu.isPassingGrade(grade) && "npu_completed");
+                rowClass = selectImportantClass(rowClass, npu.isFailingGrade(grade) && "npu_failed");
+                npu.isPassingGrade(grade) && row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
               }
 
-              rowClass = rowClass || (subscribed ? "npu_subscribed" : "npu_found");
               row.addClass(rowClass);
 
               if(!$("#upFilter_cmbSubjects").val() || $("#upFilter_cmbSubjects").val() === "0") {
                 $.examSubjectFilterCache = $.examSubjectFilterCache || {};
-                $.examSubjectFilterCache[courseCode] = rowClass;
+                /* Only overwrite the class if it has a higher precedence than the previous one */
+                $.examSubjectFilterCache[courseCode] = selectImportantClass(
+                  $.examSubjectFilterCache[courseCode], rowClass
+                );
               }
             });
 
             if($.examSubjectFilterCache) {
               $("#upFilter_cmbSubjects > option").each(function() {
-                $(this).removeClass("npu_hidden npu_completed npu_failed npu_subscribed npu_found");
+                $(this).removeClass("npu_hidden " + classPrecedence.join(" "));
                 var subjectCode = npu.parseSubjectCode($(this).text().trim());
                 var rowClass = $.examSubjectFilterCache[subjectCode];
                 var filterEnabled = npu.getUserData(null, null, "filterExams");

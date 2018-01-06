@@ -1145,7 +1145,10 @@
                 /* The class 'npu_subscribed' has a higher precedence than these, so it will not get overwritten */
                 rowClass = selectImportantClass(rowClass, npu.isPassingGrade(grade) && "npu_completed");
                 rowClass = selectImportantClass(rowClass, npu.isFailingGrade(grade) && "npu_failed");
-                npu.isPassingGrade(grade) && row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+
+                if(rowClass === "npu_completed") {
+                  row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+                }
               }
 
               row.addClass(rowClass);

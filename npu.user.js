@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.52.2
+// @version        1.52.3
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -1025,7 +1025,9 @@
           "elégséges",           "pass",
           "kiválóan megfelelt",  "excellent",
           "megfelelt",           "average",
-        ].indexOf(str.trim().toLowerCase()) !== -1;
+        ].some(function(item) {
+          return str.toLowerCase().indexOf(item) !== -1;
+        });
       },
 
       /* Returns if the given string stands for a failing grade */
@@ -1035,7 +1037,9 @@
           "nem felelt meg",      "unsatisfactory",
           "nem jelent meg",      "did not attend",
           "nem vizsgázott",      "did not attend",
-        ].indexOf(str.trim().toLowerCase()) !== -1;
+        ].some(function(item) {
+          return str.toLowerCase().indexOf(item) !== -1;
+        });
       },
 
       /* Enhance exam list style and functionality */
@@ -1141,7 +1145,10 @@
                 /* The class 'npu_subscribed' has a higher precedence than these, so it will not get overwritten */
                 rowClass = selectImportantClass(rowClass, npu.isPassingGrade(grade) && "npu_completed");
                 rowClass = selectImportantClass(rowClass, npu.isFailingGrade(grade) && "npu_failed");
-                npu.isPassingGrade(grade) && row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+
+                if(rowClass === "npu_completed") {
+                  row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+                }
               }
 
               row.addClass(rowClass);
@@ -1219,7 +1226,7 @@
           '<style type="text/css"> ' +
             '#h_signedexams_gridExamList_bodytable tr.npu_missed td ' +
             '{ ' +
-              'background: #F8EFB1 !important; ' +
+              'background-color: #F8EFB1 !important; ' +
               'color: #525659 !important; ' +
             '} ' +
             '#h_signedexams_gridExamList_bodytable tr.npu_completed td ' +

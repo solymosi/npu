@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.52.3
+// @version        1.52.4
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -1250,8 +1250,19 @@
             $("tbody tr:not(.NoMatch)", table).each(function() {
               var row = $(this);
               row.removeClass("npu_completed npu_failed npu_missed");
+              var cells = row.children('td').length;
               var attended = $("td[n=Attended]", row)[0].attributes["checked"].value == "true";
-              var grade = $("td:nth-child(13)", row).text().trim();
+
+              var grade;
+              if(cells <= 15)
+                grade = $("td:nth-child(13)", row).text().trim();
+              else {
+                // Neptun build 454 introduced an extra column to show justified absence.
+                // In this case, consider such exams "attended". Because of no grade,
+                // they won't be coloured.
+                attended = attended || $("td[n=JustifiedMissing]", row)[0].attributes["checked"].value == "true";
+                grade = $("td:nth-child(14)", row).text().trim();
+              }
 
               if(attended) {
                 npu.isPassingGrade(grade) && row.addClass("npu_completed");

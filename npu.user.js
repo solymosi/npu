@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.52.4
+// @version        1.52.5
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -1261,7 +1261,14 @@
                 // In this case, consider such exams "attended". Because of no grade,
                 // they won't be coloured.
                 attended = attended || $("td[n=JustifiedMissing]", row)[0].attributes["checked"].value == "true";
-                grade = $("td:nth-child(14)", row).text().trim();
+                
+                if(cells <= 16) {
+                  grade = $("td:nth-child(14)", row).text().trim();
+                } else {
+                  // Neptun build 456 introduced ANOTHER extra column, now the signed exams
+                  // are listed with rows: "counts as exam", "attended", "justified absence".
+                  grade = $("td:nth-child(15)", row).text().trim();
+                }
               }
 
               if(attended) {

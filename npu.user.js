@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.52.5
+// @version        1.52.6
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
@@ -19,7 +19,6 @@
 // @grant          GM_info
 // @require        https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js
-// @connect        npu.herokuapp.com
 // ==/UserScript==
 
 (function() {
@@ -79,8 +78,6 @@
           if(this.isPage("0402") || this.isPage("h_signedexams")) {
             this.fixSignedExamList();
           }
-
-          this.initStat();
         }
       },
 
@@ -621,7 +618,7 @@
             sessionEndDate = null;
           });
           if($("#npuStatus").size() == 0) {
-            $("#upTraining_lblRemainingTime").html('<span id="npuStatus" style="font-weight: normal"><a href="https://npu.herokuapp.com" target="_blank">Neptun PowerUp!</a> v' + GM.info.script.version + '</span>');
+            $("#upTraining_lblRemainingTime").html('<span id="npuStatus" style="font-weight: normal"><a href="https://github.com/solymosi/npu" target="_blank">Neptun PowerUp!</a> v' + GM.info.script.version + '</span>');
           }
         }, 1000);
       },
@@ -1281,43 +1278,6 @@
             });
           }
         }, 250);
-      },
-
-    /* == STATISTICS == */
-
-      /* Statistics server URL */
-      statHost: "http://npu.herokuapp.com/stat",
-
-      /* Initialize statistics */
-      initStat: function() {
-        var code = npu.getUserData(null, null, ["statCode"]);
-        if(code == null) {
-          code = npu.generateToken();
-          npu.setUserData(null, null, ["statSalt"], null);
-          npu.setUserData(null, null, ["statCode"], code);
-          npu.saveData();
-        }
-        setTimeout(function() {
-          try {
-            var h = new npu.jsSHA(npu.user + ":" + code, "TEXT").getHash("SHA-256", "HEX");
-            GM.xmlHttpRequest({
-              method: "POST",
-              data: $.param({
-                version: GM.info.script.version,
-                domain: npu.domain,
-                user: h.substring(0, 32),
-                uri: window.location.href
-              }),
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-              },
-              synchronous: false,
-              timeout: 10000,
-              url: npu.statHost
-            });
-          }
-          catch(e) { }
-        }, 5000);
       },
 
     /* == MISC == */

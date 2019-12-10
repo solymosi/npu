@@ -15,7 +15,7 @@ Egyébként olvasd el lent a telepítési útmutatót.
 
 ## Telepítés
 
-A szkript jelenleg a **Firefox** és  **Chrome** böngészőkre telepíthető.<br>
+A szkript jelenleg a **Firefox**,  **Chrome**, **Microsoft Edge** és **Microsoft Edge Insider** böngészőkre telepíthető.<br>
 A telepítéssel elfogadod a [használat feltételeit](#licensz) és az [adatvédelmi nyilatkozatot](#adatvédelmi-nyilatkozat).
 
 ### Firefox
@@ -28,6 +28,20 @@ A telepítéssel elfogadod a [használat feltételeit](#licensz) és az [adatvé
 ### Chrome
 
 1. Telepítsd a [TamperMonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) kiegészítőt.
+1. Most már telepítheted a Neptun PowerUp! szkriptet. Ehhez [kattints ide](https://github.com/solymosi/npu/raw/master/npu.user.js).
+1. A megjelenő oldalon kattints az **Install** gombra.
+1. Lépj be a Neptun-ra, és használd egészséggel.
+
+### Microsoft Edge
+
+1. Telepítsd a [TamperMonkey](https://www.microsoft.com/store/apps/9NBLGGH5162S) kiegészítőt.
+1. Most már telepítheted a Neptun PowerUp! szkriptet. Ehhez [kattints ide](https://github.com/solymosi/npu/raw/master/npu.user.js).
+1. A megjelenő oldalon kattints az **Install** gombra.
+1. Lépj be a Neptun-ra, és használd egészséggel.
+
+### Microsoft Edge Insider
+
+1. Telepítsd a [TamperMonkey](https://microsoftedge.microsoft.com/insider-addons/detail/iikmkjmpaadaobahmlepeloendndfphd?hl=en-US) kiegészítőt.
 1. Most már telepítheted a Neptun PowerUp! szkriptet. Ehhez [kattints ide](https://github.com/solymosi/npu/raw/master/npu.user.js).
 1. A megjelenő oldalon kattints az **Install** gombra.
 1. Lépj be a Neptun-ra, és használd egészséggel.

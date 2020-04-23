@@ -6,6 +6,7 @@
 // @downloadURL    https://github.com/solymosi/npu/raw/master/npu.user.js
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*hallgato*.*neptun*/*
+// @include        https://*oktato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*
 // @include        https://nappw.dfad.duf.hu/hallgato/*
 // @include        https://host.sdakft.hu/*

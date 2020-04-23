@@ -32,14 +32,14 @@ A telepítéssel elfogadod a [használat feltételeit](#licensz) és az [adatvé
 1. A megjelenő oldalon kattints az **Install** gombra.
 1. Lépj be a Neptun-ra, és használd egészséggel.
 
-### Microsoft Edge
+### Legacy Microsoft Edge
 
 1. Telepítsd a [TamperMonkey](https://www.microsoft.com/store/apps/9NBLGGH5162S) kiegészítőt.
 1. Most már telepítheted a Neptun PowerUp! szkriptet. Ehhez [kattints ide](https://github.com/solymosi/npu/raw/master/npu.user.js).
 1. A megjelenő oldalon kattints az **Install** gombra.
 1. Lépj be a Neptun-ra, és használd egészséggel.
 
-### Microsoft Edge Insider
+### Új Microsoft Edge
 
 1. Telepítsd a [TamperMonkey](https://microsoftedge.microsoft.com/insider-addons/detail/iikmkjmpaadaobahmlepeloendndfphd?hl=en-US) kiegészítőt.
 1. Most már telepítheted a Neptun PowerUp! szkriptet. Ehhez [kattints ide](https://github.com/solymosi/npu/raw/master/npu.user.js).

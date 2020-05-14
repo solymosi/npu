@@ -5,6 +5,7 @@
 // @version        1.52.8
 // @downloadURL    https://github.com/solymosi/npu/raw/master/npu.user.js
 // @include        https://*neptun*/*hallgato*/*
+// @include        https://*neptun*/*oktato*/*
 // @include        https://*hallgato*.*neptun*/*
 // @include        https://*oktato*.*neptun*/*
 // @include        https://netw*.nnet.sze.hu/hallgato/*

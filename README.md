@@ -7,8 +7,8 @@ A program **felturbózza a Neptun-odat**: gyorsabb tárgy- és vizsgafelvétel, 
 
 ## Legújabb verzió
 
-* Legfrissebb verzió: **1.52.9**
-* Kiadás dátuma: **2020. június 10.**
+* Legfrissebb verzió: **1.52.10**
+* Kiadás dátuma: **2020. szeptember 1.**
 
 Ha tudod, mit csinálsz, [kattints ide a telepítéshez](https://github.com/solymosi/npu/raw/master/npu.user.js).<br>
 Egyébként olvasd el lent a telepítési útmutatót.
@@ -98,6 +98,10 @@ A Neptun fejléce alapesetben a képernyő harmadát elfoglalja, ami kis képern
 Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 elemet akarsz látni egy oldalon a 20 helyett? A Neptun PowerUp! automatikusan 500 elemet jelenít meg minden listában, és eltünteti az oldalméret-választó menüt.
 
 ## Újdonságok
+
+#### 2020. szeptember 1.
+
+* **Javítva:** A Corvinus Neptun-jának címe megváltozott, emiatt a szkript egyes böngészőkben nem működött. Ez a frissítés javítja a problémát.
 
 #### 2020. április 23.
 

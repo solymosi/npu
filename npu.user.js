@@ -2,7 +2,7 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.52.9
+// @version        1.52.10
 // @downloadURL    https://github.com/solymosi/npu/raw/master/npu.user.js
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*neptun*/*Hallgatoi*/*

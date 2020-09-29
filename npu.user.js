@@ -607,7 +607,7 @@
         var keepAlive = function() {
           window.setTimeout(function() {
               var pages = ["main.aspx", "main.aspx?ismenuclick=true&ctrl=inbox", "main.aspx?ctrl=0203&ismenuclick=true", "main.aspx?ismenuclick=true&ctrl=outbox"];
-              var index = Math.floor(Math.random())%pages.length;
+              var index = Math.floor(Math.random() * Math.floor(pages.length));
               var targetUrl = pages[index-1];
 
             $.ajax({

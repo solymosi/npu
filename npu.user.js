@@ -13,6 +13,7 @@
 // @include        https://nappw.dfad.duf.hu/hallgato/*
 // @include        https://host.sdakft.hu/*
 // @include        https://neptun.ejf.hu/ejfhw/*
+// @include        https://neptun.elte.hu/*
 // @grant          GM.xmlHttpRequest
 // @grant          GM_xmlhttpRequest
 // @grant          GM.getValue
@@ -34,6 +35,10 @@
 
       /* Run features */
       init: async function() {
+        if(this.didELTERequestLogout()){
+          this.logOutELTE();
+        }
+
         if(!this.isNeptunPage()) {
           return;
         }
@@ -41,12 +46,21 @@
         this.initParameters();
         await this.loadData();
 
+        if(this.isELTEHomePage() && this.elteUserNotLoggedIn() || this.didELTERequestLogin()) {
+          this.navigateToELTELogin();
+        }
+
+        if(this.isElteLoginPage()) {
+          this.initELTEUserSelect();
+          this.initELTEAutoLogin();
+          return;
+        }
+
         if(this.isLogin()) {
           this.initUserSelect();
           this.initAutoLogin();
           this.fixWaitDialog();
-        }
-        else {
+        } else if(!this.isELTEHomePage()) {
           this.hideHeader();
           this.fixTitle();
           this.fixMenu();
@@ -293,6 +307,146 @@
         selectField.trigger("change");
       },
 
+      /* Load and display user select field on new ELTE Neptun login page */
+      initELTEUserSelect: function() {
+        const usernameField = $("#LoginName");
+        const passwordField = $("#Password");
+        const loginButton = $("input[value='Log in'], input[value='Belépés']");
+
+        // Default to login
+        const returnUrlField = $("#ReturnUrl");
+        returnUrlField.val("/?request=login");
+
+        var users = npu.getLoginUsers();
+
+        var selectField = $('<select id="user_sel" class="bevitelimezo form-control" name="user_sel"></select>').hide();
+        for(var i = 0; i < users.length; i++) {
+          selectField.append('<option id="' + users[i] + '" value="' + users[i] + '" class="neptun_kod">' + users[i] + '</option>');
+        }
+        selectField.append('<option disabled="disabled" class="user_separator">&nbsp;</option>');
+        selectField.append('<option id="other_user" value="__OTHER__">Más felhasználó...</option>');
+        selectField.append('<option id="edit_list" value="__DELETE__">Tárolt kód törlése...</option>');
+        selectField.bind("mousedown focus change", function() { npu.abortLogin() });
+        $("#Password, input[value='Log in'], input[value='Bejelentkezés']").bind("mousedown focus change", function() { npu.abortLogin() });
+
+        selectField.bind("change", function() {
+          usernameField.val("");
+          passwordField.val("");
+
+          if($(this).val() == "__OTHER__") {
+            selectField.hide();
+            usernameField.show().focus();
+            return false;
+          }
+
+          if($(this).val() == "__DELETE__") {
+            $("#user_sel").val(users[0]).trigger("change");
+            var defaultString = "mindegyiket";
+            for(var i = 0; i < users.length; i++) {
+              defaultString += "   /   " + users[i];
+            }
+            var itemToDelete = unsafeWindow.prompt("Írd be a törlendő neptun kódot. Az összes törléséhez írd be: MINDEGYIKET", defaultString);
+            if(itemToDelete == "" || itemToDelete == null) {
+              return false;
+            }
+
+            var deleted = false;
+            for(var i = 0; i < users.length; i++) {
+              if(users[i] == itemToDelete.toUpperCase() || itemToDelete.toUpperCase() == "MINDEGYIKET") {
+                npu.setChild(npu.data, ["users", npu.domain, users[i], "password"], null);
+                deleted = true;
+              }
+            }
+
+            if(!deleted) {
+              if(confirm("A megadott neptun kód nincs benne a tárolt listában. Megpróbálod újra?")) {
+                $("#user_sel").val("__DELETE__").trigger("change");
+              }
+              return false;
+            }
+
+            npu.saveData();
+
+            if(itemToDelete.toUpperCase() == "MINDEGYIKET") {
+              alert("Az összes tárolt neptun kód törölve lett a bejelentkezési listából.");
+              window.location.reload();
+              return false;
+            }
+
+            alert("A(z) " + itemToDelete + " felhasználó törölve lett a bejelentkezési listából.");
+            window.location.reload();
+            return false;
+          }
+
+          usernameField.val(users[$(this).get(0).selectedIndex]);
+          passwordField.val(npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$(this).get(0).selectedIndex], "password"])));
+        });
+
+        const loginLogic = () => {
+          const form = $("form[action='/Account/Login']");
+
+          if($("#user_sel").val() == "__OTHER__") {
+            if(usernameField.val().trim() == "" || passwordField.val().trim() == "") {
+              form.validate();
+              return;
+            }
+
+            var foundID = -1;
+            for(var i = 0; i < users.length; i++) {
+              if(users[i] == usernameField.val().toUpperCase()) {
+                foundID = i;
+              }
+            }
+
+            if(foundID == -1) {
+              if(confirm("Szeretnéd menteni a beírt adatokat, hogy később egy kattintással be tudj lépni erről a számítógépről?")) {
+                npu.setChild(npu.data, ["users", npu.domain, usernameField.val().toUpperCase(), "password"], npu.encodeBase64(passwordField.val()));
+                npu.saveData();
+              }
+              npu.submitLogin();
+              return;
+            }
+            else {
+              $("#user_sel").val(users[foundID]);
+            }
+          }
+
+          if($("#user_sel").val() == "__DELETE__") {
+            return;
+          }
+
+          if(passwordField.val() != npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"]))) {
+            if(confirm("Szeretnéd megváltoztatni a(z) " + usernameField.val().toUpperCase() + " felhasználó tárolt jelszavát a most beírt jelszóra?")) {
+              npu.setChild(npu.data, ["users", npu.domain, users[$("#user_sel").get(0).selectedIndex], "password"], npu.encodeBase64(passwordField.val()));
+              npu.saveData();
+            }
+          }
+          
+          form.submit();
+          return;
+        }
+
+        loginButton.attr("onclick", "").bind("click", function(e) {
+          e.preventDefault();
+          loginLogic();
+        });
+
+        loginButton.val("Belépés");
+        loginButton.parent().append('<input type="button" id="loginToHirek" class="btn btn-primary" value="Belépés a hírekhez">');
+        $("#loginToHirek").bind("click", function(e){
+          e.preventDefault();
+          returnUrlField.val("");
+          loginLogic();
+        });
+
+        usernameField.hide();
+        usernameField.parent().append(selectField);
+        usernameField.val(users[$(this).get(0).selectedIndex]);
+        passwordField.val(npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$(this).get(0).selectedIndex], "password"])));
+        selectField.show();
+        selectField.trigger("change");
+      },
+
       /* Initialize auto login and start countdown */
       initAutoLogin: function() {
         var users = npu.getLoginUsers();
@@ -319,6 +473,42 @@
 
           if(npu.loginCount <= 0) {
             npu.submitLogin();
+            npu.abortLogin();
+            submit.attr("value", npu.loginButton + "...");
+          }
+        }, 1000);
+      },
+
+      /* Initialize auto login and start countdown on new ELTE Neptun */
+      initELTEAutoLogin: function() {
+        var users = npu.getLoginUsers();
+
+        if(users.length < 1) {
+          return;
+        }
+
+        var submit = $("input[value='Log in'], input[value='Belépés']");
+
+        npu.loginCount = 3;
+        npu.loginButton = submit.attr("value");
+        submit.attr("value", npu.loginButton + " (" + npu.loginCount + ")");
+
+        console.log(submit);
+        submit.parent().append('<input class="btn btn-warning" value="Megszakít" id="abort_login">');
+        $("#abort_login").click(function(e) {
+          e.preventDefault();
+          submit.val(npu.loginButton);
+          npu.abortLogin();
+          $("#abort_login").remove();
+        });
+
+        npu.loginTimer = window.setInterval(function() {
+          npu.loginCount--;
+          submit.attr("value", npu.loginButton + " (" + npu.loginCount + ")");
+
+          if(npu.loginCount <= 0) {
+            const form = $("form[action='/Account/Login']");
+            form.submit();
             npu.abortLogin();
             submit.attr("value", npu.loginButton + "...");
           }
@@ -391,7 +581,13 @@
 
       /* Fix opening in new tab and add shortcuts */
       fixMenu: function() {
-        var color = $("#lbtnQuit").css("color");
+        const logoutButton = $("#lbtnQuit");
+        var color = logoutButton.css("color");
+
+        // Set the log out flag for ELTE users.
+        if(window.location.href.includes("neptun.elte.hu")) {
+          logoutButton.attr("onclick", "").attr("href", "https://neptun.elte.hu/?request=logout")
+        }
 
         $(
           '<style type="text/css"> ' +
@@ -1288,7 +1484,61 @@
 
       /* Verify that we are indeed on a Neptun page */
       isNeptunPage: function() {
-        return document.title.indexOf("Neptun.Net") != -1;
+        return document.title.indexOf("Neptun.Net") != -1 ||
+                this.isELTEHomePage() ||
+                this.isElteLoginPage();
+      },
+
+      /* Check if we are on the new ELTE Neptun homepage. */
+      isELTEHomePage: function() {
+        const {hostname, pathname} = window.location;
+        return hostname === "neptun.elte.hu" && pathname === "/";
+      },
+
+      /* Check if we are on the new ELTE Neptun login page. */
+      isElteLoginPage: function() {
+        const {hostname, pathname} = window.location;
+        return hostname === "neptun.elte.hu" && pathname === "/Account/Login";
+      },
+
+      /*
+        Check if the user wants to log out.
+        Flag set by clicking the log out link on hallgato.neptun.elte.hu.
+      */
+      didELTERequestLogout: function() {
+        return window.location.href === "https://neptun.elte.hu/?request=logout";
+      },
+
+      /*
+        Check if the user wants to log in.
+        Flag set automatically on /Account/Login. Can be cleared by cliking the
+        'Belépés a hírekhez' button.
+      */
+      didELTERequestLogin: function() {
+        return window.location.href === "https://neptun.elte.hu/?request=login";
+      },
+
+      /* Log the user out on the new ELTE Neptun homepage. */
+      logOutELTE: function() {
+        const logoutButton = $("button:contains('Kilépés'), button:contains('Log out')");
+        logoutButton.click();
+      },
+
+      /*
+        Navigate to /Account/Login if the user is not logged in or
+        hallgato.neptun.elte.hu if the user is logged in.
+      */
+      navigateToELTELogin: function() {
+        window.location.href = "https://neptun.elte.hu/ToNeptunWeb/ToNeptunHWeb";
+      },
+
+      /*
+        If an ELTE user is not logged in then automaically go to the login page
+      */
+      elteUserNotLoggedIn: function() {
+        const loginCount = $("a[href='/Account/Login']");
+        return window.location.href === "https://neptun.elte.hu/" &&
+                loginCount.length !== 0;
       },
 
       /* Initialize and cache parameters that do not change dynamically */

@@ -1,0 +1,7 @@
+{
+  "javascript.preferences.quoteStyle": "double",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "eslint.options": {
+    "configFile": ".eslintrc.js"
+  }
+}

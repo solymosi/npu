@@ -6,6 +6,9 @@ const storage = require("../storage");
 function getLoginUsers() {
   const users = [];
   const list = storage.get("users", utils.getDomain());
+  if (!list) {
+    return users;
+  }
   Object.keys(list).forEach(user => {
     if (typeof list[user].password === "string" && list[user].password !== "") {
       users.push(user);

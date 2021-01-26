@@ -7,7 +7,7 @@ A program **felturbózza a Neptun-odat**: gyorsabb tárgy- és vizsgafelvétel, 
 
 ## Legújabb verzió
 
-* Legfrissebb verzió: **2.0.1**
+* Legfrissebb verzió: **2.1.0**
 * Kiadás dátuma: **2021. január 26.**
 
 Ha tudod, mit csinálsz, [kattints ide a telepítéshez](https://github.com/solymosi/npu/releases/latest/download/npu.user.js).<br>
@@ -102,6 +102,7 @@ Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 el
 
 #### 2021. január 26.
 
+* **Újdonság:** Az "önnek kitöltendő kérdőíve van" felugró ablak mostantól automatikusan elrejtésre kerül.
 * **Fejlődés:** A szkript forráskódja teljesen át lett szervezve, ezzel megkönnyítve a jövőbeni módosításokat.
 
 #### 2020. szeptember 1.

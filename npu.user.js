@@ -2,8 +2,8 @@
 // @name           Neptun PowerUp!
 // @namespace      http://example.org
 // @description    Felturbózza a Neptun-odat
-// @version        1.52.10
-// @downloadURL    https://github.com/solymosi/npu/raw/master/npu.user.js
+// @version        1.53.0
+// @downloadURL    https://github.com/solymosi/npu/releases/latest/download/npu.user.js
 // @include        https://*neptun*/*hallgato*/*
 // @include        https://*neptun*/*Hallgatoi*/*
 // @include        https://*neptun*/*oktato*/*
@@ -14,16 +14,13 @@
 // @include        https://host.sdakft.hu/*
 // @include        https://neptun.ejf.hu/ejfhw/*
 // @grant          GM.xmlHttpRequest
-// @grant          GM_xmlhttpRequest
 // @grant          GM.getValue
-// @grant          GM_getValue
 // @grant          GM.setValue
-// @grant          GM_setValue
 // @grant          GM.info
-// @grant          GM_info
-// @require        https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js
 // ==/UserScript==
+
+// TODO: delete this file after Jun 2021
 
 (function() {
   "use strict";

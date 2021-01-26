@@ -1,0 +1,55 @@
+module.exports = {
+  root: true,
+  ignorePatterns: ["**/*.js", "!src/**/*.js"],
+  extends: ["eslint:recommended", "prettier"],
+  env: {
+    browser: true,
+    es6: true,
+    node: true,
+  },
+  parserOptions: {
+    ecmaVersion: 2018,
+  },
+  globals: {
+    GM: true,
+    unsafeWindow: true,
+    exportFunction: true,
+  },
+  rules: {
+    "default-param-last": "error",
+    "dot-notation": "error",
+    eqeqeq: ["error", "always"],
+    "lines-between-class-members": [
+      "error",
+      "always",
+      {
+        exceptAfterSingleLine: true,
+      },
+    ],
+    "no-dupe-class-members": "error",
+    "no-empty": [
+      "error",
+      {
+        allowEmptyCatch: true,
+      },
+    ],
+    "no-eval": "error",
+    "no-invalid-this": "off",
+    "no-loop-func": "error",
+    "no-new-wrappers": "error",
+    "no-param-reassign": "error",
+    "no-redeclare": "error",
+    "no-shadow": "error",
+    "no-underscore-dangle": "off",
+    "no-unused-expressions": "error",
+    "no-unused-vars": "error",
+    "no-useless-constructor": "error",
+    "no-var": "error",
+    "object-shorthand": ["error", "always"],
+    "one-var": ["error", "never"],
+    "prefer-const": "error",
+    "prefer-template": "error",
+    radix: "error",
+  },
+  reportUnusedDisableDirectives: true,
+};

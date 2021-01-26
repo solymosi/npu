@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - 12
+os: linux
+
+script: npm run build && npm run verify
+
+deploy:
+  provider: releases
+  token:
+    secure: "l/bCdDyfdJYbkkDzB43QfyTjOBqt06Pjv5/hxmQ7wD8+YkYZuFaXy74L3VORAMKDqY9RjorwFHTwV/KBeiN4OuZFxIOcPstH8znyS7wrdC2GApA+/pdXxRmk1aJrHie7DBPT9tKvu9XSSWgD8CHEPoR4C0nDbrg3Hacv2/L4wEH5i5d2Zwg2eimbPkVlkPAYxh8GeVM6jQxDHzrx9OPXvNYczBCKs0mA/8Xi4XBjlEIywtImFxMEBRMCeAgZIv49kc72LzXylc0d39zqPikncodDLuPFCQrykX+f/uyd0FCpSUDGeQ0rJagOIGboY7zs01Ksv5WM7lX9f9O+fxBieRhh1DyOXU/WOfeZrin0Lbd9kexvxIThLhq9XsG/2Pd1LGeOXhgkNT+B7s1oJF55B0WkAYY82Q7FLewgQojRkFP0Eb00trbStsVOgRtD4CLtOf+9HOnpzvgGL6yjCmIN9cr4YNMCIOKXGpoD9E1XHGWHfJzsxuFh7G9ZsKIiosSsclbfoksn/asYa1CvQ3W/tAR76qj6uodiPRtBxDbTD6N0Yo4llVq1Jzh4mkKI7H1+CmnnLAaw1xw0kj9yPr1MRCsL3xM01pqV8JTD5axc9wFvolKquB+FILNnaBkRzGPbCWXdxoK9Qk3+HesVr4kHVQyzEEJlU0g7SxgDOQ1EZHg="
+  file: dist/npu.user.js
+  skip_cleanup: true
+  on:
+    tags: true

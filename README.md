@@ -102,7 +102,7 @@ Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 el
 
 #### 2021. január 26.
 
-* **Újdonság:** Az "önnek kitöltendő kérdőíve van" felugró ablak mostantól automatikusan elrejtésre kerül.
+* **Újdonság:** Az "önnek kitöltendő kérdőíve van" felugró ablak mostantól automatikusan elrejtésre kerül. – _nyuszika7h_
 * **Fejlődés:** A szkript forráskódja teljesen át lett szervezve, ezzel megkönnyítve a jövőbeni módosításokat.
 
 #### 2020. szeptember 1.

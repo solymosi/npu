@@ -13,6 +13,7 @@ const modules = [
   require("./modules/termSelectorFixes"),
   require("./modules/paginationFixes"),
   require("./modules/officialMessageAlert"),
+  require("./modules/hideSurveyPopup"),
   require("./modules/infiniteSession"),
   require("./modules/loadingIndicator"),
 

@@ -20,7 +20,21 @@
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js
 // ==/UserScript==
 
-// TODO: delete this file after Jun 2021
+/**
+ * THIS FILE IS OBSOLETE!
+ * Please do not submit any PRs against it.
+ *
+ * The only reason it is here is to provide a seamless upgrade path from version 1.52.x
+ * to version 2.x for existing users who have the URL of this file configured in their
+ * TamperMonkey installation. This version 1.53.0 has no changes whatsoever other than
+ * the new `@downloadURL` directive above that points to the URL of version 2.x.
+ *
+ * The source code is now located in the `src` directory and has been refactored into
+ * several independent modules which are in the `src/modules` directory. To add a new
+ * module you'll need to create a new file there and reference it in `src/index.js`.
+ *
+ * This file will be removed after Jun 2021.
+ */
 
 (function() {
   "use strict";

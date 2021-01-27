@@ -98,7 +98,7 @@ function initUserSelect() {
     $("#pwd").val(atob(storage.get("users", utils.getDomain(), users[$(this).get(0).selectedIndex], "password")));
   });
 
-  $("input[type=button].login_button")
+  /*$("input[type=button].login_button")
     .attr("onclick", "")
     .bind("click", function (e) {
       e.preventDefault();
@@ -151,7 +151,7 @@ function initUserSelect() {
 
       submitLogin();
       return;
-    });
+    });*/
 
   $("#user").parent().append(selectField);
   showSelect();

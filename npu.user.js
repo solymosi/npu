@@ -256,7 +256,7 @@
           $("#pwd").val(npu.decodeBase64(npu.getChild(npu.data, ["users", npu.domain, users[$(this).get(0).selectedIndex], "password"])));
         });
 
-        $("input[type=button].login_button").attr("onclick", "").bind("click", function(e) {
+        /*$("input[type=button].login_button").attr("onclick", "").bind("click", function(e) {
           e.preventDefault();
 
           if($("#user_sel").val() == "__OTHER__") {
@@ -297,7 +297,7 @@
 
           npu.submitLogin();
           return;
-        });
+        });*/
 
         $("#user").parent().append(selectField);
         npu.showSelect();

@@ -7,7 +7,7 @@ A program **felturbózza a Neptun-odat**: gyorsabb tárgy- és vizsgafelvétel, 
 
 ## Legújabb verzió
 
-* Legfrissebb verzió: **2.2.0**
+* Legfrissebb verzió: **2.2.1**
 * Kiadás dátuma: **2021. január 30.**
 
 Ha tudod, mit csinálsz, [kattints ide a telepítéshez](https://github.com/solymosi/npu/releases/latest/download/npu.user.js).<br>

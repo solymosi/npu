@@ -15,7 +15,7 @@ Egyébként olvasd el lent a telepítési útmutatót.
 
 ## Telepítés
 
-A szkript jelenleg a **Firefox**,  **Chrome** és **Microsoft Edge** böngészőkre telepíthető.<br>
+A szkript a legtöbb modern böngészőre telepíthető.<br>
 A telepítéssel elfogadod a [használat feltételeit](#licensz) és az [adatvédelmi nyilatkozatot](#adatvédelmi-nyilatkozat).
 
 1. Telepítsd a **TamperMonkey** kiegészítőt az alábbi oldalak egyikéről:
@@ -208,7 +208,7 @@ Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 el
 
 * **Javítva:** A Firefox 30-as frissítése jelentősen megváltoztatott bizonyos dolgokat a motorháztető alatt, melyek teljesen elrontották a szkript működését. Ez a frissítés remélhetőleg javítja a problémát, és ismét működőképessé teszi a programot a Firefox újabb verziói alatt.
 * **Fejlődés:** A tárgyfelvétel oldalon a “csak a meghirdetett tárgyak” jelelőnégyzet működése megváltozott. Az automatikus tárgylistázás most már a négyzet ki- és bepipálásakor is megtörténik.
-    Eltávolítva: A képzésválasztó menü megjelenítését kijavították a Neptun fejlesztői, így már nincs szükség beavatkozásra ahhoz, hogy az oldal újratöltése nélkül jelenjen meg.
+* **Eltávolítva:** A képzésválasztó menü megjelenítését kijavították a Neptun fejlesztői, így már nincs szükség beavatkozásra ahhoz, hogy az oldal újratöltése nélkül jelenjen meg.
 
 #### 2014. február 6.
 

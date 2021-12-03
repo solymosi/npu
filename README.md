@@ -103,7 +103,7 @@ Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 el
 
 #### 2021. december 3.
 
-* **Javítva:** Az ELTE Neptun legutóbbi frissítése megakadályozta a szkript helyes működését. A probléma javításra került.
+* **Javítva:** Az ELTE Neptun legutóbbi frissítése megakadályozta a szkript helyes működését. A probléma javításra került. – _MSZGs_
 
 #### 2021. január 30.
 

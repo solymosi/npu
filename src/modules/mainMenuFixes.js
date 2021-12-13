@@ -95,8 +95,3 @@ module.exports = {
     fixMenu();
   },
 };
-
-
-
-1096
-1187

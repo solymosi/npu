@@ -216,6 +216,3 @@ module.exports = {
     initExamAutoList();
   },
 };
-
-686
-870

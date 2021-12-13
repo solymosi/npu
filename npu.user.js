@@ -36,7 +36,7 @@
  * This file will be removed after Jun 2021.
  */
 
-(function() {
+ (function() {
   "use strict";
 
   var npu = {
@@ -429,6 +429,8 @@
         $("#mb1_Tanulmanyok").attr("targeturl", "main.aspx?ctrl=0206&ismenuclick=true").attr("hoverid", "#mb1_Tanulmanyok_Leckekonyv");
         $("#mb1_Targyak").attr("targeturl", "main.aspx?ctrl=0303&ismenuclick=true").attr("hoverid", "#mb1_Targyak_Targyfelvetel");
         $("#mb1_Vizsgak").attr("targeturl", "main.aspx?ctrl=0401&ismenuclick=true").attr("hoverid", "#mb1_Vizsgak_Vizsgajelentkezes");
+        $("#mb1_Vizsgak").text($("#mb1_Vizsgak_Vizsgajelentkezes").text());
+        
 
         var orarend = $('<li aria-haspopup="false" tabindex="0" role="menuitem" class="menu-parent has-target" id="mb1_Orarend" targeturl="main.aspx?ctrl=0203&amp;ismenuclick=true">Órarend</li>');
         $("#mb1_Targyak").before(orarend);
@@ -1130,6 +1132,7 @@
         window.setInterval(function() {
           var table = $("#h_exams_gridExamList_bodytable");
           var filterEnabled = npu.getUserData(null, null, "filterExams");
+          var filterSubscribedEnabled = npu.getUserData(null, null, "filterSubscribedExams");
 
           if(table.attr("data-processed") != "1") {
             table.attr("data-processed", "1");
@@ -1165,6 +1168,11 @@
 
               row.addClass(rowClass);
 
+              if(rowClass !== "npu_subscribed" && filterSubscribedEnabled)
+              {
+                row.addClass("npu_hidden");
+              }
+
               if(!$("#upFilter_cmbSubjects").val() || $("#upFilter_cmbSubjects").val() === "0") {
                 $.examSubjectFilterCache = $.examSubjectFilterCache || {};
                 /* Only overwrite the class if it has a higher precedence than the previous one */
@@ -1189,6 +1197,7 @@
 
         window.setInterval(function() {
           var filterEnabled = npu.getUserData(null, null, "filterExams");
+          var subscribedFilterEnabled = npu.getUserData(null, null, "filterSubscribedExams");
           var pager = $("#h_exams_gridExamList_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
           if($("#npu_filter_exams").size() == 0) {
             var filterCell = $('<td id="npu_filter_exams" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_field">Teljesített tárgyak elrejtése</label></td>');
@@ -1201,7 +1210,23 @@
             });
             pager.prepend(filterCell);
           }
+          
+          if($("#npu_filter_subscribed_exams").size() == 0) {
+            var subscribedFilterCell = $('<td id="npu_filter_subscribed_exams" style="padding-right: 30px; line-height: 17px"><input type="checkbox" id="npu_filter_subscribed_field" style="vertical-align: middle" />&nbsp;&nbsp;<label for="npu_filter_subscribed_field">Csak a felvett vizsgák megjelenítése</label></td>');
+            $("input", subscribedFilterCell).change(function() {
+              npu.setUserData(null, null, "filterSubscribedExams", $(this).get(0).checked);
+              npu.saveData();
+              npu.runEval(function() {
+                $("#upFilter_expandedsearchbutton").click();
+              });
+            });
+            pager.prepend(subscribedFilterCell);
+          }
+
           $("#npu_filter_field").get(0).checked = filterEnabled;
+          
+          $("#npu_filter_subscribed_field").get(0).checked = subscribedFilterEnabled;
+
         }, 500);
       },
 

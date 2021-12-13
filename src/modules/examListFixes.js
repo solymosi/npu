@@ -71,6 +71,7 @@ function fixExamList() {
   window.setInterval(() => {
     const table = $("#h_exams_gridExamList_bodytable");
     const filterEnabled = storage.getForUser("filterExams");
+    const filterSubscribedEnabled = storage.getForUser("filterSubscribedExams");
 
     if (table.attr("data-processed") !== "1") {
       table.attr("data-processed", "1");
@@ -106,6 +107,11 @@ function fixExamList() {
           if (rowClass === "npu_completed") {
             row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
           }
+        }
+
+        if(rowClass !== "npu_subscribed" && filterSubscribedEnabled)
+        {          
+          row.addClass("npu_hidden");
         }
 
         row.addClass(rowClass);
@@ -153,6 +159,24 @@ function fixExamList() {
       pager.prepend(filterCell);
     }
     $("#npu_filter_field").get(0).checked = filterEnabled;
+
+    const filterSubscribedEnabled = storage.getForUser("filterSubscribedExams");
+    if ($("#npu_filter_subscribed_field").size() === 0) {
+      const filterSubscribedCell = $(
+        `<td id="npu_filter_subscribed_exams" style="padding-right: 30px; line-height: 17px">` +
+          `<input type="checkbox" id="npu_filter_subscribed_field" style="vertical-align: middle" />&nbsp;&nbsp;` +
+          `<label for="npu_filter_subscribed_field">Csak a jelentkezett vizsgák megejelnítése</label>` +
+          `</td>`
+      );
+      $("input", filterSubscribedCell).change(function () {
+        storage.setForUser("filterSubscribedExams", $(this).get(0).checked);
+        utils.runEval(function () {
+          $("#upFilter_expandedsearchbutton").click();
+        });
+      });
+      pager.prepend(filterSubscribedCell);
+    }
+    $("#npu_filter_subscribed_field").get(0).checked = filterSubscribedEnabled;
   }, 500);
 }
 
@@ -192,3 +216,6 @@ module.exports = {
     initExamAutoList();
   },
 };
+
+686
+870

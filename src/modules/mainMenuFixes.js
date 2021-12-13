@@ -10,7 +10,7 @@ function fixMenu() {
     }
     #mb1 li.menu-parent {
       color: #525659 !important;
-    }
+    }   
     #mb1 li.menu-parent.has-target {
       color: ${color} !important;
     }
@@ -28,6 +28,7 @@ function fixMenu() {
   $("#mb1_Vizsgak")
     .attr("targeturl", "main.aspx?ctrl=0401&ismenuclick=true")
     .attr("hoverid", "#mb1_Vizsgak_Vizsgajelentkezes");
+  $("#mb1_Vizsgak").text($("#mb1_Vizsgak_Vizsgajelentkezes").text());
 
   const orarend = $(`
     <li aria-haspopup="false" tabindex="0" role="menuitem"
@@ -94,3 +95,8 @@ module.exports = {
     fixMenu();
   },
 };
+
+
+
+1096
+1187

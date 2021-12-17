@@ -109,8 +109,7 @@ function fixExamList() {
           }
         }
 
-        if(rowClass !== "npu_subscribed" && filterSubscribedEnabled)
-        {          
+        if (rowClass !== "npu_subscribed" && filterSubscribedEnabled) {
           row.addClass("npu_hidden");
         }
 

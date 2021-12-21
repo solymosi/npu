@@ -5,6 +5,7 @@ const modules = [
   // Login page
   require("./modules/autoLogin"),
   require("./modules/loginRetry"),
+  require("./modules/loginBanner"),
 
   // All authenticated pages
   require("./modules/hideHeader"),

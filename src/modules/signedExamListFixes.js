@@ -23,28 +23,21 @@ function fixSignedExamList() {
     if (table.attr("data-processed") !== "1") {
       table.attr("data-processed", "1");
 
+      const resultCellIndex = $("#h_signedexams_gridExamList_headerrow th[id^=head_ExamResult").index();
+      if (!resultCellIndex) {
+        // Bail because we have no idea which cell has the exam result
+        return;
+      }
+
       $("tbody tr:not(.NoMatch)", table).each(function () {
         const row = $(this);
         row.removeClass("npu_completed npu_failed npu_missed");
-        const cells = row.children("td").length;
-        let attended = $("td[n=Attended]", row)[0].attributes.checked.value === "true";
 
-        let grade;
-        if (cells <= 15) grade = $("td:nth-child(13)", row).text().trim();
-        else {
-          // Neptun build 454 introduced an extra column to show justified absence.
-          // In this case, consider such exams "attended". Because of no grade,
-          // they won't be coloured.
-          attended = attended || $("td[n=JustifiedMissing]", row)[0].attributes.checked.value === "true";
+        const attended =
+          $("td[n=Attended]", row)[0].attributes.checked.value === "true" ||
+          $("td[n=JustifiedMissing]", row)[0].attributes.checked.value === "true";
 
-          if (cells <= 16) {
-            grade = $("td:nth-child(14)", row).text().trim();
-          } else {
-            // Neptun build 456 introduced ANOTHER extra column, now the signed exams
-            // are listed with rows: "counts as exam", "attended", "justified absence".
-            grade = $("td:nth-child(15)", row).text().trim();
-          }
-        }
+        const grade = $("td", row).eq(resultCellIndex).text().trim();
 
         if (attended) {
           if (utils.isPassingGrade(grade)) {

@@ -70,7 +70,8 @@ function fixExamList() {
 
   window.setInterval(() => {
     const table = $("#h_exams_gridExamList_bodytable");
-    const filterEnabled = storage.getForUser("filterExams");
+    const filterCompleted = storage.getForUser("filterExams");
+    const filterNonSubscribed = storage.getForUser("filterSubscribedExams");
 
     if (table.attr("data-processed") !== "1") {
       table.attr("data-processed", "1");
@@ -104,8 +105,12 @@ function fixExamList() {
           rowClass = selectImportantClass(rowClass, utils.isFailingGrade(grade) && "npu_failed");
 
           if (rowClass === "npu_completed") {
-            row.add(subRow)[filterEnabled ? "addClass" : "removeClass"]("npu_hidden");
+            row.add(subRow)[filterCompleted ? "addClass" : "removeClass"]("npu_hidden");
           }
+        }
+
+        if (rowClass !== "npu_subscribed" && filterNonSubscribed) {
+          row.addClass("npu_hidden");
         }
 
         row.addClass(rowClass);
@@ -135,7 +140,7 @@ function fixExamList() {
   }, 250);
 
   window.setInterval(() => {
-    const filterEnabled = storage.getForUser("filterExams");
+    const filterCompleted = storage.getForUser("filterExams");
     const pager = $("#h_exams_gridExamList_gridmaindiv .grid_pagertable .grid_pagerpanel table tr");
     if ($("#npu_filter_exams").size() === 0) {
       const filterCell = $(
@@ -152,7 +157,25 @@ function fixExamList() {
       });
       pager.prepend(filterCell);
     }
-    $("#npu_filter_field").get(0).checked = filterEnabled;
+    $("#npu_filter_field").get(0).checked = filterCompleted;
+
+    const filterNonSubscribed = storage.getForUser("filterSubscribedExams");
+    if ($("#npu_filter_non_subscribed_field").size() === 0) {
+      const filterSubscribedCell = $(
+        `<td id="npu_filter_non_subscribed_exams" style="padding-right: 30px; line-height: 17px">` +
+          `<input type="checkbox" id="npu_filter_non_subscribed_field" style="vertical-align: middle" />&nbsp;&nbsp;` +
+          `<label for="npu_filter_non_subscribed_field">Csak a jelentkezett vizsgák megjelenítése</label>` +
+          `</td>`
+      );
+      $("input", filterSubscribedCell).change(function () {
+        storage.setForUser("filterSubscribedExams", $(this).get(0).checked);
+        utils.runEval(function () {
+          $("#upFilter_expandedsearchbutton").click();
+        });
+      });
+      pager.prepend(filterSubscribedCell);
+    }
+    $("#npu_filter_non_subscribed_field").get(0).checked = filterNonSubscribed;
   }, 500);
 }
 

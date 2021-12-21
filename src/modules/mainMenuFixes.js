@@ -6,7 +6,7 @@ function fixMenu() {
   const color = $("#lbtnQuit").css("color");
   utils.injectCss(`
     ul.menubar, .top_menu_wrapper {
-      cursor: default !important; 
+      cursor: default !important;
     }
     #mb1 li.menu-parent {
       color: #525659 !important;

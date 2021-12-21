@@ -7,8 +7,8 @@ A program **felturbózza a Neptun-odat**: gyorsabb tárgy- és vizsgafelvétel, 
 
 ## Legújabb verzió
 
-* Legfrissebb verzió: **2.2.2**
-* Kiadás dátuma: **2021. december 3.**
+* Legfrissebb verzió: **2.3.0**
+* Kiadás dátuma: **2021. december 21.**
 
 Ha tudod, mit csinálsz, [kattints ide a telepítéshez](https://github.com/solymosi/npu/releases/latest/download/npu.user.js).<br>
 Egyébként olvasd el lent a telepítési útmutatót.
@@ -100,6 +100,12 @@ A Neptun fejléce alapesetben a képernyő harmadát elfoglalja, ami kis képern
 Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 elemet akarsz látni egy oldalon a 20 helyett? A Neptun PowerUp! automatikusan 500 elemet jelenít meg minden listában, és eltünteti az oldalméret-választó menüt.
 
 ## Újdonságok
+
+#### 2021. december 21.
+
+* **Újdonság:** A vizsgajelentkezés oldalon mostantól lehetőség van a nem jelentkezett vizsgák elrejtésére. – _FeaXR_
+* **Újdonság:** A Neptun PowerUp! verziója most már a Neptun bejelentkezési oldalán is megjelenik.
+* **Javítva:** Egy Neptun-frissítés elrontotta a felvett vizsgák oldalon a teljesített vizsgák hátterének színezését.
 
 #### 2021. december 3.
 

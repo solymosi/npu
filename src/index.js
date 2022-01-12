@@ -42,6 +42,17 @@ const modules = [
 (async () => {
   await storage.initialize();
 
+  if(window.location.href.endsWith("main.aspx") && storage.get("newLogin", utils.getDomain())) {
+    storage.set("newLogin", utils.getDomain(), false)
+    if(!storage.getForUser("lastPage").includes("ctrl=inbox")) {
+      window.location.href = storage.getForUser("lastPage");
+    }
+  }
+  else if(window.location.href.includes("main.aspx"))
+  {
+    storage.setForUser("lastPage", window.location.href);
+  }
+
   modules.forEach(module => {
     if (module.shouldActivate() && (utils.isNeptunPage() || module.runOutsideNeptun)) {
       module.initialize();

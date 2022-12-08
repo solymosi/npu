@@ -7,6 +7,9 @@ const modules = [
   require("./modules/loginRetry"),
   require("./modules/loginBanner"),
 
+  // Automatic redirect to the last visited page
+  require("./modules/backToLastPage"),
+
   // All authenticated pages
   require("./modules/hideHeader"),
   require("./modules/pageTitle"),
@@ -41,15 +44,6 @@ const modules = [
 
 (async () => {
   await storage.initialize();
-
-  if (window.location.href.endsWith("main.aspx") && storage.get("newLogin", utils.getDomain())) {
-    storage.set("newLogin", utils.getDomain(), false);
-    if (!storage.getForUser("lastPage").includes("ctrl=inbox")) {
-      window.location.href = storage.getForUser("lastPage");
-    }
-  } else if (window.location.href.includes("main.aspx")) {
-    storage.setForUser("lastPage", window.location.href);
-  }
 
   modules.forEach(module => {
     if (module.shouldActivate() && (utils.isNeptunPage() || module.runOutsideNeptun)) {

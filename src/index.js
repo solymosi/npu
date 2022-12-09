@@ -7,6 +7,9 @@ const modules = [
   require("./modules/loginRetry"),
   require("./modules/loginBanner"),
 
+  // Automatic redirect to the last visited page
+  require("./modules/backToLastPage"),
+
   // All authenticated pages
   require("./modules/hideHeader"),
   require("./modules/pageTitle"),

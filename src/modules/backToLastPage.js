@@ -2,23 +2,31 @@ const $ = window.jQuery;
 const utils = require("../utils");
 const storage = require("../storage");
 
-//Add a checkbox under the login button, to engage the auto redirecting to the last visited page
-function initLastPageCHeckbox() {
-  $(".login_button_td").append(
-    '<div id="backToLastPage" style="text-align: center; margin: 23px 0 0 128px"><input type="checkbox" id="backToLastPage_chbx" style="vertical-align: middle"/><label for="backToLastPage_chbx">Az utolsó megtekintett oldalra vissza</label></div>'
-  );
+// Add a checkbox under the login button for enabling auto-redirect to the last visited page
+function initLastPageCheckbox() {
+  utils.injectCss(`
+    .login_right_side {
+      vertical-align: top;
+    }
+  `);
+  $(".login_button_td").append(`
+    <div id="backToLastPage" style="text-align: center; margin: 23px 0 0 128px">
+      <input type="checkbox" id="backToLastPage_chbx" style="vertical-align: middle">
+      <label for="backToLastPage_chbx">vissza a legutóbbi oldalra</label>
+    </div>
+  `);
   $("#backToLastPage_chbx").change(function () {
     saveLastPageSetting();
   });
 }
 
-//Save the saved state of the last page setting
+// Save the saved state of the last page setting
 function saveLastPageSetting() {
   storage.set("backToLastPage", utils.getDomain(), document.getElementById("backToLastPage_chbx").checked);
   storage.set("newLogin", utils.getDomain(), document.getElementById("backToLastPage_chbx").checked);
 }
 
-//Load the saved state of the last page setting
+// Load the saved state of the last page setting
 function loadLastPageSetting() {
   if (storage.get("backToLastPage", utils.getDomain())) {
     storage.set("newLogin", utils.getDomain(), true);
@@ -28,7 +36,7 @@ function loadLastPageSetting() {
 
 function lastPageInit() {
   if (utils.isLoginPage()) {
-    initLastPageCHeckbox();
+    initLastPageCheckbox();
     loadLastPageSetting();
   } else {
     if (window.location.href.endsWith("main.aspx") && storage.get("newLogin", utils.getDomain())) {

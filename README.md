@@ -7,8 +7,8 @@ A program **felturbózza a Neptun-odat**: gyorsabb tárgy- és vizsgafelvétel, 
 
 ## Legújabb verzió
 
-* Legfrissebb verzió: **2.3.0**
-* Kiadás dátuma: **2021. december 21.**
+* Legfrissebb verzió: **2.4.0**
+* Kiadás dátuma: **2022. december 9.**
 
 Ha tudod, mit csinálsz, [kattints ide a telepítéshez](https://github.com/solymosi/npu/releases/latest/download/npu.user.js).<br>
 Egyébként olvasd el lent a telepítési útmutatót.
@@ -93,13 +93,18 @@ Ha van olvasatlan hivatalos üzeneted, akkor a Neptun addig nem enged továbblé
 
 #### Fejléc eltüntetése
 
-A Neptun fejléce alapesetben a képernyő harmadát elfoglalja, ami kis képernyő esetén elég idegesítő. Mivel a vigyorgó pofákon és a Neptun Meet Street gombon kívül semmi érdekes nincs rajta, a szkript eltünteti neked. A Meet Street ezentúl a menüsorról érhető el.
+A Neptun fejléce alapesetben a képernyő harmadát elfoglalja, ami kis képernyő esetén elég idegesítő. Mivel a vigyorgó pofákon és a Neptun Meet Street gombon kívül semmi érdekes nincs rajta, a szkript eltünteti neked.
 
 #### Automatikus oldalméret-beállítás
 
 Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 elemet akarsz látni egy oldalon a 20 helyett? A Neptun PowerUp! automatikusan 500 elemet jelenít meg minden listában, és eltünteti az oldalméret-választó menüt.
 
 ## Újdonságok
+
+#### 2022. december 9.
+
+* **Újdonság:** A belépéskor mostantól lehetőség van bekapcsolni az automatikus átirányítást a legutóbb megtekintett Neptun oldalra. – _FeaXR_
+* **Fejlődés:** A fejléc eltüntetéséhez a szkript mostantól a Neptun beépített funkcióját használja, így az szükség esetén ismét megjeleníthető. – _FeaXR_
 
 #### 2021. december 21.
 

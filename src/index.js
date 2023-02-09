@@ -20,6 +20,7 @@ const modules = [
   require("./modules/hideSurveyPopup"),
   require("./modules/infiniteSession"),
   require("./modules/loadingIndicator"),
+  require("./modules/messageReadMarker"),
 
   // Timetable page
   require("./modules/timetableFixes"),

@@ -15,10 +15,10 @@ function fixMessageMarker() {
             .bind("click", function (e) {
             e.preventDefault();
 
-            var rows = document.querySelectorAll('.Row1_Bold_sel');
+            const rows = document.querySelectorAll('.Row1_Bold_sel');
 
             rows.forEach(row => {
-                var id = row.id.substr(4);
+                const id = row.id.substr(4);
                 document.querySelector(`#tr__${id} .link`).click();
 
                 //window.setInterval(() => closePopup(), 100);
@@ -32,10 +32,10 @@ function fixMessageMarker() {
             .bind("click", function (e) {
             e.preventDefault();
 
-            var rows = document.querySelectorAll('.Row1_Bold');
+            const rows = document.querySelectorAll('.Row1_Bold');
 
             rows.forEach(row => {
-                var id = row.id.substr(4);
+                const id = row.id.substr(4);
                 document.querySelector(`#tr__${id} .link`).click();
             });
         });

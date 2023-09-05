@@ -99,6 +99,10 @@ A Neptun fejléce alapesetben a képernyő harmadát elfoglalja, ami kis képern
 
 Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 elemet akarsz látni egy oldalon a 20 helyett? A Neptun PowerUp! automatikusan 500 elemet jelenít meg minden listában, és eltünteti az oldalméret-választó menüt.
 
+#### Felugró ablakok könnyebb bezárása
+
+A felugró ablakok bezárásához most már nem kell eltalálni a kicsi X-et a sarokban, az ablakon kívülre kattintással is be lehet zárni.
+
 ## Újdonságok
 
 #### 2022. december 9.

@@ -35,6 +35,7 @@ A telepítéssel elfogadod a [használat feltételeit](#licensz) és az [adatvé
     * [Microsoft Edge](https://microsoftedge.microsoft.com/insider-addons/detail/iikmkjmpaadaobahmlepeloendndfphd)
     * [Opera](https://addons.opera.com/en/extensions/details/tampermonkey-beta)
     * [Safari](https://apps.apple.com/us/app/tampermonkey/id1482490089)
+1. _Chrome, Opera és Edge alatt:_ [kapcsold be a fejlesztői módot](https://www.tampermonkey.net/faq.php#Q209) a beállításokban.
 1. Most már telepítheted a Neptun PowerUp! szkriptet. Ehhez [kattints ide](https://github.com/solymosi/npu/releases/latest/download/npu.user.js).
 1. A megjelenő oldalon kattints az **Install** gombra.
 1. Lépj be a Neptun-ra, és használd egészséggel.

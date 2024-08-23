@@ -18,8 +18,8 @@ A program **felturbózza a Neptun-odat**: gyorsabb tárgy- és vizsgafelvétel, 
 
 ## Legújabb verzió
 
-* Legfrissebb verzió: **2.4.0**
-* Kiadás dátuma: **2022. december 9.**
+* Legfrissebb verzió: **2.4.1**
+* Kiadás dátuma: **2024. augusztus 23.**
 
 Ha tudod, mit csinálsz, [kattints ide a telepítéshez](https://github.com/solymosi/npu/releases/latest/download/npu.user.js).<br>
 Egyébként olvasd el lent a telepítési útmutatót.
@@ -110,6 +110,10 @@ A Neptun fejléce alapesetben a képernyő harmadát elfoglalja, ami kis képern
 Eleged van abból, hogy minden egyes alkalommal be kell állítanod, hogy 500 elemet akarsz látni egy oldalon a 20 helyett? A Neptun PowerUp! automatikusan 500 elemet jelenít meg minden listában, és eltünteti az oldalméret-választó menüt.
 
 ## Újdonságok
+
+#### 2024. augusztus 23.
+
+* **Javítva:** Az automatikus átirányítás a legutóbb megtekintett Neptun oldalra néha hibásan működött.
 
 #### 2022. december 9.
 

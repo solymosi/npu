@@ -12,14 +12,17 @@ function initKeepSession() {
     }
   }
   const keepAlive = function () {
-    window.setTimeout(() => {
-      const pages = ["inbox", "0303", "0401", "0203", "0206"];
-      const page = pages[Math.floor(Math.random() * pages.length)];
-      $.ajax({
-        url: `main.aspx?ismenuclick=true&ctrl=${page}`,
-      });
-      keepAlive();
-    }, timeout * 1000 - 30000 - Math.floor(Math.random() * 30000));
+    window.setTimeout(
+      () => {
+        const pages = ["inbox", "0303", "0401", "0203", "0206"];
+        const page = pages[Math.floor(Math.random() * pages.length)];
+        $.ajax({
+          url: `main.aspx?ismenuclick=true&ctrl=${page}`,
+        });
+        keepAlive();
+      },
+      timeout * 1000 - 30000 - Math.floor(Math.random() * 30000)
+    );
   };
   keepAlive();
 

@@ -39,7 +39,11 @@ function lastPageInit() {
     initLastPageCheckbox();
     loadLastPageSetting();
   } else {
-    if (window.location.href.endsWith("main.aspx") && storage.get("newLogin", utils.getDomain())) {
+    if (
+      window.location.href.endsWith("main.aspx") &&
+      storage.get("newLogin", utils.getDomain()) &&
+      storage.get("lastPage", utils.getDomain())
+    ) {
       storage.set("newLogin", utils.getDomain(), false);
       if (!storage.getForUser("lastPage").includes("ctrl=inbox")) {
         window.location.href = storage.getForUser("lastPage");

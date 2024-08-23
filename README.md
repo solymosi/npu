@@ -5,6 +5,17 @@ Ez a **Neptun PowerUp!** hivatalos oldala.
 
 A program **felturbózza a Neptun-odat**: gyorsabb tárgy- és vizsgafelvétel, kidobás elleni védelem, automatikus belépés, könnyebben kezelhető felület, tárolható belépési adatok, és még sok más. 25 egyetem és főiskola **több mint 15 ezer** diákjának életét könnyíti meg már 2011 óta.
 
+> [!CAUTION]
+> **A Neptun PowerUp! a jelen formájában nem fog tovább működni 😢**
+>
+> A Neptun nemrég bevezetett egy **új felhasználói felületet**, amely teljesen máshogy működik, mint a régi. Néhány egyetem már most bevezette az új felületet, és arra lehet számítani, hogy záros határidőn belül mindenhol csak az új felület lesz elérhető.
+>
+> A Neptun PowerUp! **a régi felületre lett fejlesztve, így csak azzal kompatibilis**. Ahhoz, hogy az új felületen is működjön, szinte az összes modult a újra kellene írni. Ez sajnos jóval több időt és erőforrást igényelne tőlem, mint amennyit a projektre jelenleg rá tudok szánni 😕.
+>
+> A Neptun PowerUp! legelső verzióját 2011-ben tettem közzé, nem sokkal azután, hogy felvettek a Corvinus-ra. Három évvel később, 2014-ben lediplomáztam és kiköltöztem külföldre, így az elmúlt 10 évben nem volt aktív jogviszonyom magyar egyetemen. Ennek ellenére továbbra is rendszeresen időt szántam arra, hogy még ha a Neptun PowerUp! nem is kap új funkciókat, de legalább a meglévők működőképesek és hibamentesek maradjanak. Ehhez többen is jelentősen hozzájárultak pull request-ekkel és community support-tal, akiknek ezúton is köszönöm a segítségét.
+>
+> A jelenlegi helyzetben viszont a projekt fennmaradását csak abban az esetben látom lehetségesnek, ha valaki átveszi tőlem a fejlesztést, és újraírja a szkriptet, hogy az új Neptun felületen is működjön. Ennek hiányában **a projekt 2024 végén archiválásra fog kerülni**.
+
 ## Legújabb verzió
 
 * Legfrissebb verzió: **2.4.0**
@@ -21,8 +32,7 @@ A telepítéssel elfogadod a [használat feltételeit](#licensz) és az [adatvé
 1. Telepítsd a **TamperMonkey** kiegészítőt az alábbi oldalak egyikéről:
     * [Firefox](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey)
     * [Google Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
-    * [Legacy Microsoft Edge](https://www.microsoft.com/store/apps/9NBLGGH5162S)
-    * [Új Microsoft Edge](https://microsoftedge.microsoft.com/insider-addons/detail/iikmkjmpaadaobahmlepeloendndfphd)
+    * [Microsoft Edge](https://microsoftedge.microsoft.com/insider-addons/detail/iikmkjmpaadaobahmlepeloendndfphd)
     * [Opera](https://addons.opera.com/en/extensions/details/tampermonkey-beta)
     * [Safari](https://apps.apple.com/us/app/tampermonkey/id1482490089)
 1. Most már telepítheted a Neptun PowerUp! szkriptet. Ehhez [kattints ide](https://github.com/solymosi/npu/releases/latest/download/npu.user.js).
